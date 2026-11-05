@@ -45,6 +45,8 @@ Every editable field carries `source_status` = `actual|forecast`, `source_note`,
 - Named scenario, baseline actual events, future assumptions/overrides, tax year, rate-set version, calculated timestamp and warnings.
 - Scenario overrides must not mutate source actuals.
 
+M1 implementation and acceptance details: [M1 Compensation & ANI milestone](M1_COMPENSATION_ANI.md) · [GitHub tracker #1](https://github.com/amberdemon/vestor/issues/1).
+
 ## 3. ANI engine — M1
 
 The implementation must follow HMRC's actual definition of adjusted net income rather than a simplified salary-only proxy.
