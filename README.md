@@ -8,6 +8,7 @@ Vestor is a planned local-first UK compensation planner for salary, bonuses, emp
 
 - [Project overview and roadmap](PROJECT.md)
 - [Product and financial rules specification](docs/SPEC.md)
+- [M1 milestone specification](docs/M1_COMPENSATION_ANI.md) and [M1 implementation tracker](https://github.com/amberdemon/vestor/issues/1)
 - [Instructions for coding agents](AGENTS.md)
 
 ## Principles
