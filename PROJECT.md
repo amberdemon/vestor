@@ -52,6 +52,7 @@ This is a planning tool, **not** a payroll engine, tax filing service, personal 
 - Adjusted net income calculation and £100k Personal Allowance taper.
 - Transparent explanation, input validation and worked-example unit tests.
 - M1 **does not** claim to calculate full UK tax bills or RSU CGT.
+- [M1 detailed milestone specification](docs/M1_COMPENSATION_ANI.md) · [M1 live issue tracker](https://github.com/amberdemon/vestor/issues/1).
 
 ### M2 — RSU, FX and CGT
 - Actual and forecast vest schedules, number of shares and vest FMV, original payroll taxable GBP amount.
