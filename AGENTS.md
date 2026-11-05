@@ -7,7 +7,7 @@ Vestor is a local-first UK RSU, compensation, tax and pension planning tool. It 
 Before implementing any issue, read, in order:
 1. `PROJECT.md`
 2. `docs/SPEC.md`
-3. the GitHub milestone/tracker and the specific assigned GitHub issue
+3. the relevant milestone contract (for M1, `docs/M1_COMPENSATION_ANI.md`), [M1 tracker #1](https://github.com/amberdemon/vestor/issues/1), and the specific assigned GitHub issue
 4. existing tests and the relevant implementation
 
 The **issue is the unit of implementation**. Do not implement future-milestone scope opportunistically.
