@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** Planned — not implemented
+**Status:** M1.2 scaffold implemented. Compensation and ANI features remain planned.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -83,7 +83,7 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the implementati
 ## Implementation order
 
 1. **M1.1** — Ratify financial definitions, source/rounding decisions and worked examples.
-2. **M1.2** — Minimal architecture, Docker Compose and test harness.
+2. **M1.2** — [Minimal architecture, Docker Compose and test harness](M1_APP_ARCHITECTURE.md).
 3. **M1.3** — Versioned UK tax-year configuration and dated input primitives.
 4. **M1.4** — Salary periods and bonus event logic.
 5. **M1.5** — Pension methods and Gift Aid adjustment contract.
