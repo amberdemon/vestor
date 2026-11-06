@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** design proposal, not implemented or tax-verified software  
+**Status:** financial design specification with M1.2 app scaffold implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -188,7 +188,7 @@ A milestone must finish with an integration/verification issue, manual scenarios
 
 ## 9. Implementation decisions
 
-The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. M1.2 owns the minimal app architecture. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
+The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. The [M1.2 architecture decision](M1_APP_ARCHITECTURE.md) records the shipped local shell, health endpoint and test pipeline. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
 
 ## 10. Authoritative references for implementation review
 

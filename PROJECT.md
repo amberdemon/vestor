@@ -79,13 +79,7 @@ This is a planning tool, **not** a payroll engine, tax filing service, personal 
 
 ## 5. Engineering direction
 
-**Proposed architecture (to validate in first issue):**
-- TypeScript + React + Vite frontend, Tailwind CSS and accessible components.
-- Python backend/domain using `Decimal`; FastAPI only where persistence/calculation API is warranted.
-- SQLite for persistent events, rules metadata and saved scenarios.
-- Docker Compose for single-command local deployment, host port bound to `127.0.0.1`.
-- pytest for domain calculations, Vitest for UI logic, Playwright for acceptance paths.
-- All tax calculations run in a pure, testable domain engine rather than UI event handlers.
+**M1.2 scaffold architecture:** a pure Python `Decimal` domain, a thin FastAPI bridge and a React/TypeScript/Vite shell. FastAPI serves the built UI and health endpoint on one loopback-only Docker Compose port. pytest, mypy, TypeScript and Vitest run in Docker and PR CI. See the [architecture decision](docs/M1_APP_ARCHITECTURE.md) and [local commands](README.md#run-locally). SQLite remains planned for M4.
 
 For early M1, a minimal functional interface is acceptable. Prioritise the deterministic engine; avoid premature microservices, user login, real-time quote providers, background jobs, bank connectors, Kubernetes and an AI tax-calculation layer. No automatic fetching of historical tax or FX rates is required for core use: user-entered rates must work offline.
 
@@ -126,8 +120,8 @@ A milestone is complete only when:
 ## 9. Immediate next steps
 
 1. Review the [M1.1 financial contract](docs/M1_FINANCIAL_CONTRACT.md) and synthetic fixtures.
-2. Confirm the smallest maintainable app slice and lock dependencies in M1.2.
+2. Use the [M1.2 scaffold](docs/M1_APP_ARCHITECTURE.md) for local development and checks.
 3. Follow the [M1 tracker](https://github.com/amberdemon/vestor/issues/1) in dependency order, with PR review and tests for each implementation issue.
 4. Do not expand to M2 calculations until M1 has verified results.
 
-**This document describes intended behaviour, not already-shipped features.**
+**The M1.2 scaffold provides local startup and health checks. The compensation and tax features above remain planned.**
