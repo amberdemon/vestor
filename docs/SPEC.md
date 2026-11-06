@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** financial design specification with M1.2 app scaffold implemented
+**Status:** M1.2 app scaffold and M1.3 tax-year and dated GBP primitives implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -18,7 +18,7 @@ Vestor answers these distinct questions:
 
 ## 2. Inputs and data model
 
-Every editable field carries `source_status` = `actual|forecast`, `source_note`, and (if relevant) effective date. Distinguish a manually entered value from one imported from payroll in future.
+Dated inputs carry `source_status` (`actual`, `forecast` or `unknown`), `source_note` and an effective date. An actual or forecast source can still have an unknown value. Distinguish a manually entered value from one imported from payroll in future.
 
 ### TaxYear
 - `start_date`, `end_date`, `tax_residence`, `income_tax_jurisdiction`.
@@ -188,7 +188,7 @@ A milestone must finish with an integration/verification issue, manual scenarios
 
 ## 9. Implementation decisions
 
-The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. The [M1.2 architecture decision](M1_APP_ARCHITECTURE.md) records the shipped local shell, health endpoint and test pipeline. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
+The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. The [M1.2 architecture decision](M1_APP_ARCHITECTURE.md) records the shipped local shell, health endpoint and test pipeline. The [M1.3 domain primitives](M1_COMPENSATION_ANI.md#implemented-m13-primitives) implement inclusive year membership, scope selection and dated GBP event evidence. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
 
 ## 10. Authoritative references for implementation review
 

@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold implemented. Compensation and ANI features remain planned.
+**Status:** M1.2 scaffold and M1.3 domain primitives implemented. Compensation and ANI calculations remain planned.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -25,13 +25,20 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 ## M1 release acceptance
 
 - [ ] A clean checkout can launch a loopback-only app through documented Docker Compose commands and run the test suite.
-- [ ] UK tax-year boundaries and England/Northern Ireland 2026/27 standard allowance rules are represented in a versioned data structure with source and as-of date.
+- [x] UK tax-year boundaries and England/Northern Ireland 2026/27 standard allowance rules are represented in a versioned data structure with source and as-of date.
 - [ ] Inputs can be entered for salary periods, bonus events, RSU GBP taxable-income events, salary sacrifice/net-pay/relief-at-source pensions, benefits, Gift Aid and other income categories.
 - [ ] Engine rejects bad/ambiguous inputs and reports unknown or unsupported cases; no silent annualisation, duplicate benefits or hidden FX assumptions.
 - [ ] Calculation has a traceable waterfall from taxable gross income through allowed adjustments to ANI; 2026/27 standard Personal Allowance taper and target headroom display correctly.
 - [ ] UI makes actual versus forecast clear, shows 6 April–5 April tax-year scope, date allocation, assumptions, and that inputs are not saved.
 - [ ] Automated tests cover precision, tax boundaries, benefits renewal, payroll actual overrides, all three pension methods, Gift Aid, other income and allowance boundaries.
 - [ ] Final verification issue contains independent worked examples, test results, a limitations list and links to PRs; no unverified tax value is called authoritative.
+
+## Implemented M1.3 primitives
+
+- `TaxYear` and `DateRange` use inclusive date-only boundaries. The rule selector takes a tax-year start year, a UK income-tax jurisdiction and an explicit confirmation of full-year UK residence and standard allowance treatment. Only England and Northern Ireland in 2026/27 select a ruleset. The rules include the source URL, verification date, effective dates and version. The allowance calculation is M1.9.
+- `DatedMoney` records an event ID, ISO date, exact GBP decimal amount, source status and note. GBP and percentage inputs use plain decimal strings with a leading digit and up to two and four fractional places respectively. Percentages range from 0 to 100. Explicit null represents an unknown GBP amount. Explicit zero represents a known amount.
+- `resolve_events` rejects repeated event IDs, including identical rows. An actual with a separate ID can explicitly link to one supplied forecast ID. Each forecast can have one replacement. The actual takes precedence before year filtering even when its date changes the tax year. Both records appear as evidence, with the breakdown identifying the replacement. Matching dates or amounts alone leave records independent. Replacement of recurring coverage belongs to the relevant compensation issues.
+- The resolver returns a coverage status, rule version, warnings, source events and included, excluded or replaced breakdown lines. The source events and lines are ordered by date then ID. An included unknown amount or source status, or unconfirmed coverage, yields an incomplete result. The wire representation uses strings for dates and amounts and a null result value. The resolver selects evidence and has no income aggregate.
 
 ## Financial rules and edge cases
 
