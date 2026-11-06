@@ -49,14 +49,14 @@ M1 implementation and acceptance details: [M1 Compensation & ANI milestone](M1_C
 
 ## 3. ANI engine — M1
 
-The implementation must follow HMRC's actual definition of adjusted net income rather than a simplified salary-only proxy.
+The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 2026/27 rules, source verification, planning conventions and worked regression fixtures.
 
 ### Tax-year inclusion
-- Annual salary must be allocated to actual applicable payroll dates/pay periods; handle salary changes and partial tax years.
-- Bonus belongs in the tax year when taxable/received under employment rules; never allocate by vest date if payroll rules require otherwise.
+- Use actual taxable payroll dates and amounts when known. Where only an annual rate and effective dates are known, use the documented calendar-day forecast.
+- Allocate ordinary cash bonuses to the taxable receipt date under employment rules, including earlier entitlement where applicable.
 - RSU vest value belongs to the relevant employment income event even when shares were withheld or sold to cover.
 - Employer-funded taxable benefits are included at their **taxable benefit value** (payrolled or P11D as appropriate), not mechanically at displayed employer premiums if a different valuation applies.
-- For annual premiums changing on renewal, time-apportion only when appropriate to the benefit's taxable valuation method; mark estimates and prefer payroll facts.
+- For annual taxable values changing on renewal, time-apportion only when appropriate to the benefit's taxable valuation method. Label estimates and prefer payroll facts.
 - Include applicable other taxable income even if the tax on it is reduced by savings/dividend allowances.
 - CGT is separate and excluded from ANI.
 
@@ -69,7 +69,7 @@ The implementation must follow HMRC's actual definition of adjusted net income r
 
 ### Core outputs
 - `employment_income_gbp`, `other_relevant_income_gbp`, `adjustments_gbp`, `ani_gbp`.
-- Personal Allowance taper: for the initial 2026/27 rule set, loss is £1 for each £2 ANI above £100,000, subject to limits; configurable from versioned rules.
+- Personal Allowance taper: for the initial 2026/27 rule set, subtract half the ANI excess above £100,000 from £12,570, floor at zero and round the remaining allowance up to a whole pound.
 - `headroom = target_ani - projected_ani`; can be negative.
 - `extra_qualifying_gross_pension_needed = max(0, projected_ani - target_ani + configured_buffer)` *only for a qualifying contribution that reduces ANI pound-for-pound*. Show feasibility against annual allowance, earnings, employer restrictions, bonus amount, deadlines and method.
 - Tax bands, income tax and NI estimates are a later verified capability, **not** inferred from one effective rate when projected income crosses the taper.
@@ -132,7 +132,7 @@ Inputs: projected share/FX prices per event, sale timing, bonuses, benefits, sav
 
 ### F3 — Renewing benefit
 - Confirmed annual taxable benefit cost £2,400 from 6 April through 31 October, £3,000 from 1 November to 5 April, where pro-rating is valid.
-- Estimate the relevant tax-year amount using defined daily/monthly allocation and test boundary semantics; do not use £3,000 for full year. Prefer actual payroll values.
+- Use calendar-day allocation where appropriate, producing £2,656.44 in 2026/27. Prefer actual payroll values for confirmed coverage.
 
 ### F4 — Vest versus sale
 - 100 RSUs vest with taxable total $1,000 at USD/GBP 0.80; original acquisition GBP basis £800.
@@ -167,7 +167,7 @@ Inputs: projected share/FX prices per event, sale timing, bonuses, benefits, sav
 ## 7. Architecture, interfaces and security
 
 - Calculations are pure functions over immutable input DTOs and a versioned rules object, with `Decimal` or exact minor-unit/rational representations; no binary float for money or FX.
-- Return `value`, `status` (confirmed/estimated/unsupported), `breakdown`, `warnings`, `source_events` and `rule_version`.
+- Return `value`, `status` (confirmed/estimated/incomplete/unsupported), `breakdown`, `warnings`, `source_events` and `rule_version`.
 - APIs (when introduced): create/update compensation events, list tax-year summary, evaluate scenario, explain result; validate all inputs server-side.
 - Local-only persistence; SQLite migrations, export/import data without secrets, and explicit backup semantics.
 - No telemetry or remote stock/FX calls necessary. Third-party price integrations are future opt-in features.
@@ -186,14 +186,9 @@ Every behaviour-changing issue:
 
 A milestone must finish with an integration/verification issue, manual scenarios and a signed-off limitations list.
 
-## 9. Open decisions to resolve before implementing M1
+## 9. Implementation decisions
 
-1. Confirm exact target jurisdictions (initially England and Northern Ireland income tax; Scottish treatment later).
-2. Choose current HMRC reference URLs, source provenance, and rule-set update/approval process.
-3. Define decimal precision, day/month benefit apportionment, HMRC rounding and date-specific exchange-rate acceptance.
-4. Confirm minimal UI/backend split for M1; avoid adding a server merely to serve static demo input.
-5. Specify payroll date conventions, edge cases for restricted stock, and required pension annual allowance warnings.
-6. Clarify what qualifies as 'cash available' when income tax was already withheld but employer tax is owed separately.
+The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. M1.2 owns the minimal app architecture. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
 
 ## 10. Authoritative references for implementation review
 

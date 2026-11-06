@@ -35,9 +35,11 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 ## Financial rules and edge cases
 
+The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the implementation rules and fixture expectations for this scope.
+
 ### Tax-year and jurisdiction
 - Date-only events retain their actual date, no timezone reinterpretation. Tax-year membership is inclusive: **6 April through 5 April**.
-- Annualised salary is a **rate**, not money already earned; allocate across in-year effective dates based on a documented payroll schedule or explicitly labelled estimate. Part-year service and changes must not silently count as 12 full months.
+- Annualised salary is a **rate**, not money already earned; allocate across in-year effective dates using known taxable payroll amounts or the documented calendar-day forecast. Part-year service and changes must not silently count as 12 full months.
 - Bonuses are recorded as individually dated taxable events (forecast/actual). One event must not be counted twice when its status changes.
 - Enforce England/Northern Ireland, standard Personal Allowance scope for M1; mark exceptions such as Blind Person's Allowance, multiple jobs with unusual payroll, split-year residence or pension annual allowance taper as unsupported, as appropriate.
 
@@ -49,7 +51,7 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 - For M1, show contributions and documented rule application, **not** a claim that a contribution is permitted under all pension annual allowance restrictions.
 
 ### Benefits
-- Entry can be: (a) actual payrolled/P11D taxable GBP amount, or (b) forecast annual employer premium/rate effective over dates with a specified, validated apportionment method. Unknown taxability is not included as zero without warning.
+- Entry can be: (a) actual payrolled/P11D taxable GBP amount, or (b) forecast annual taxable benefit value effective over dates where calendar-day apportionment is appropriate. Unknown taxability is not included as zero without warning.
 - Renewal values across 1 November must not be incorrectly treated as full-year amounts. Show periods and assumptions.
 - If a payrolled benefit is already present in entered taxable payroll income, ask for / capture an explicit inclusion flag and prevent duplicate addition.
 
@@ -60,10 +62,10 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 ### Other income and ANI
 - Support user-entered **taxable** interest and dividends even if tax on the amounts is reduced by separate allowances; offer gross taxable amount vs already-tax-exempt amount distinctly.
-- Start with supported categories: taxable bank interest, taxable dividends, foreign income (only if explicitly supported), self-employed / property net taxable amounts (manual), Gift Aid, qualifying gross pension deduction and allowed gross pension contributions. Flag ambiguous exemptions/deductions.
+- Start with supported categories: taxable bank interest, taxable dividends, UK trading or property net taxable amounts (manual), Gift Aid and qualifying pension contributions. Flag ambiguous exemptions/deductions.
 - Exclude CGT from ANI.
 - Calculate: sum in-year taxable income **after** employer payroll reductions, minus valid gross relief-at-source/Gift Aid/other supported ANI deductions, with complete breakdown and no duplicate adjustment.
-- Standard Personal Allowance for 2026/27 = **£12,570**; taper above **£100,000** at £1 per £2 excess to minimum 0. The **ANI target** is user-entered and distinct from statutory taper threshold.
+- Standard Personal Allowance for 2026/27 = **£12,570**; taper above **£100,000** at £1 per £2 excess to minimum 0, then round the remaining allowance up to a whole pound. The **ANI target** is user-entered and distinct from statutory taper threshold.
 - A provisional *amount over target* may be displayed as a simple difference; the recommended method/amount of pension sacrifice is M3, not M1.
 
 ## Example acceptance scenarios (fictional)

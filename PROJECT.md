@@ -125,9 +125,9 @@ A milestone is complete only when:
 
 ## 9. Immediate next steps
 
-1. Review `docs/SPEC.md` and settle M1 calculation contracts, fixtures and stack.
-2. Create M1 tracking issue and ordered implementation issues, including a final verification issue.
-3. Have Codex implement the smallest vertical slice; require PR review and tests for each issue.
+1. Review the [M1.1 financial contract](docs/M1_FINANCIAL_CONTRACT.md) and synthetic fixtures.
+2. Confirm the smallest maintainable app slice and lock dependencies in M1.2.
+3. Follow the [M1 tracker](https://github.com/amberdemon/vestor/issues/1) in dependency order, with PR review and tests for each implementation issue.
 4. Do not expand to M2 calculations until M1 has verified results.
 
 **This document describes intended behaviour, not already-shipped features.**
