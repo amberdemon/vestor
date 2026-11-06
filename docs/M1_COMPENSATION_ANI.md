@@ -40,6 +40,12 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 - `resolve_events` rejects repeated event IDs, including identical rows. An actual with a separate ID can explicitly link to one supplied forecast ID. Each forecast can have one replacement. The actual takes precedence before year filtering even when its date changes the tax year. Both records appear as evidence, with the breakdown identifying the replacement. Matching dates or amounts alone leave records independent. Replacement of recurring coverage belongs to the relevant compensation issues.
 - The resolver returns a coverage status, rule version, warnings, source events and included, excluded or replaced breakdown lines. The source events and lines are ordered by date then ID. An included unknown amount or source status, or unconfirmed coverage, yields an incomplete result. The wire representation uses strings for dates and amounts and a null result value. The resolver selects evidence and has no income aggregate.
 
+## Implemented M1.5 pension and Gift Aid domain
+
+- The Python domain applies valid salary or bonus sacrifice before any applicable net-pay deduction, using the reported employment basis for each method and retaining payroll evidence.
+- Dated gross pension, relief-at-source pension and Gift Aid evidence supplies separate deductions for the eventual ANI waterfall. Ordinary employer contributions are recorded separately.
+- The [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) describes eligibility confirmation, date handling, supported pay bases and warnings. The ANI engine and calculator UI follow in M1.9 and M1.10.
+
 ## Financial rules and edge cases
 
 The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the implementation rules and fixture expectations for this scope.
