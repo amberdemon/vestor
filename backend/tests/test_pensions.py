@@ -6,6 +6,7 @@ from fractions import Fraction
 import pytest
 
 from test_employment import calculate, pay, payroll, period
+from vestor_domain.employment import PayrollComponent
 from vestor_domain.events import DatedMoney
 from vestor_domain.pensions import Adjustment, PayrollReduction, calculate_pensions
 from vestor_domain.tax_year import TaxRules, select_tax_rules
@@ -285,3 +286,26 @@ def test_empty_pensions_and_gift_aid_require_coverage_confirmation():
     result = pension(calculate(salary=[period("salary", "80000")]), confirmed=False)
     assert result.status == "incomplete"
     assert result.net_income_deduction_gbp is None
+
+
+@pytest.mark.parametrize(("payroll_methods", "bonus_methods", "expected_status"), [
+    (None, ("salary_sacrifice",), "incomplete"),
+    (None, ("net_pay", "salary_sacrifice"), "confirmed"),
+    (("salary_sacrifice", "net_pay"), ("net_pay", "salary_sacrifice"), "confirmed"),
+])
+def test_included_bonus_reconciles_reflected_pension_methods(payroll_methods, bonus_methods, expected_status):
+    employment = calculate(payroll=[payroll(
+        pay("salary", "10000", basis="after_reductions", reflected_methods=payroll_methods),
+        "2026-04-06", "2027-04-05",
+        components=(PayrollComponent("bonus", "bonus", Decimal("1000")),),
+    )], bonuses=[pay("bonus", "1000", basis="after_reductions", reflected_methods=bonus_methods)])
+    treatment = "apply" if expected_status == "incomplete" else "reflected"
+    result = pension(employment, [net_pay("net", "bonus", "100", treatment=treatment, base="full_pay")])
+
+    assert result.status == expected_status
+    if expected_status == "incomplete":
+        assert result.taxable_salary_gbp is None
+        assert result.taxable_bonus_gbp is None
+        assert any(warning.field == "salary" for warning in result.warnings)
+    else:
+        assert result.taxable_salary_gbp + result.taxable_bonus_gbp == 10000

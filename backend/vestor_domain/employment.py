@@ -77,6 +77,12 @@ class PayEvent:
             raise InputError("entitlement_on", "Supply a date-only entitlement date alongside a payment date.")
 
     @property
+    def reflected_payroll_methods(self) -> tuple[PayrollMethod, ...]:
+        if self.basis != "after_reductions":
+            return ()
+        return self.reflected_methods or ("salary_sacrifice", "net_pay")
+
+    @property
     def receipt_on(self) -> date | None:
         # ITEPA 2003 s18, ordinary money earnings. See HMRC EIM42260.
         if self.timing in ("unknown_date", "unconfirmed_entitlement"):
@@ -134,9 +140,7 @@ class EmploymentLine:
         if isinstance(source, SalaryPeriod):
             return ()
         pay = source.pay if isinstance(source, SalaryPayment) else source
-        if pay.basis != "after_reductions":
-            return ()
-        return pay.reflected_methods or ("salary_sacrifice", "net_pay")
+        return pay.reflected_payroll_methods
 
     @property
     def basis(self) -> PayBasis:
@@ -189,9 +193,10 @@ def _dated_salary_amount(
             if bonus is None or (
                 bonus.money.amount_gbp != part.amount_gbp
                 or bonus.basis != pay.basis
+                or set(bonus.reflected_payroll_methods) != set(pay.reflected_payroll_methods)
                 or bonus.money.source_status != pay.money.source_status
             ):
-                warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus amount, source and pay basis."))
+                warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus amount, source and reflected payroll methods."))
                 return None
             # A known payroll payment already includes this bonus. Its taxable
             # receipt can still be earlier through entitlement.
