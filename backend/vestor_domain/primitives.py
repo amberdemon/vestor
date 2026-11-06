@@ -72,3 +72,13 @@ def parse_percent(raw: object) -> Decimal:
     if value > 100:
         raise InputError("percent", "Enter a percentage from 0 to 100.")
     return value
+
+
+def validate_gbp(amount: Decimal | None, *, field: str = "amount_gbp") -> None:
+    if amount is not None and (
+        not isinstance(amount, Decimal)
+        or not amount.is_finite()
+        or amount.is_signed()
+        or int(amount.as_tuple().exponent) < -2
+    ):
+        raise InputError(field, "Use a finite nonnegative GBP Decimal with up to two fractional digits.")

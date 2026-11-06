@@ -8,7 +8,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from .primitives import InputError, Problem, ProblemStatus, parse_date, parse_gbp
+from .primitives import InputError, Problem, ProblemStatus, parse_date, parse_gbp, validate_gbp
 from .tax_year import TaxRules
 
 
@@ -47,15 +47,7 @@ class DatedMoney:
         if type(self.on) is not date:
             raise InputError("on", "Use a date-only value.")
 
-        amount = self.amount_gbp
-        if amount is not None and (
-            not isinstance(amount, Decimal)
-            or not amount.is_finite()
-            or amount.is_signed()
-            or int(amount.as_tuple().exponent) < -2
-        ):
-            raise InputError("amount_gbp", "Use a finite nonnegative GBP Decimal with up to two fractional digits.")
-
+        validate_gbp(self.amount_gbp)
         _source_status(self.source_status)
         _require_text(self.source_note, "source_note")
         if self.replaces_forecast_id is not None:

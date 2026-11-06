@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold and M1.3 tax-year and dated GBP primitives implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives and M1.4 salary and bonus domain implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -26,8 +26,8 @@ Dated inputs carry `source_status` (`actual`, `forecast` or `unknown`), `source_
 - **No silent fallback** to the latest tax year when a year has no verified rule set.
 
 ### Employment
-- Salary periods: `effective_from`, `effective_to`, annualised amount, pay frequency, salary sacrifice basis, qualifying amount.
-- Bonus: `payment_date` / taxable payroll date, gross amount, tentative or confirmed, contribution election deadline, eligible bonus sacrifice.
+- Salary periods have inclusive effective dates, annual GBP rate, source evidence and optional pay frequency. Dated salary payments separately identify their covered service days, taxable receipt timing, payroll composition and pension reduction basis.
+- Bonuses have a stable event ID, payment or confirmed taxable receipt date, entitlement evidence, GBP amount, source status and pension reduction basis. A confirmed record can explicitly link to the forecast it supersedes.
 - Pension: employer and employee funding separately; methods `salary_sacrifice|net_pay|relief_at_source|other`, contribution bases, percentage or amount, effective dates, gross-up where applicable.
 - Benefit: category, annual premium or payroll taxable value, taxable status (`yes|no|unknown`), renewal date, payer, employee contributions, effective periods; prefer confirmed payroll taxable values to estimates.
 - Other taxable income: interest, dividends, rental and miscellaneous categories, allowable deductions / gift aid as separate explicit inputs. Do not equate zero tax due on an income stream with zero inclusion in ANI.

@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold and M1.3 domain primitives implemented. Compensation and ANI calculations remain planned.
+**Status:** M1.2 scaffold, M1.3 domain primitives and M1.4 salary and bonus calculations implemented. Pension and ANI calculations remain planned.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
