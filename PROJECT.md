@@ -124,4 +124,4 @@ A milestone is complete only when:
 3. Follow the [M1 tracker](https://github.com/amberdemon/vestor/issues/1) in dependency order, with PR review and tests for each implementation issue.
 4. Do not expand to M2 calculations until M1 has verified results.
 
-**Implemented foundations.** The M1.2 scaffold provides local startup and health checks. M1.3 adds versioned 2026/27 rules, inclusive UK tax-year dates and dated GBP evidence in the Python domain. Compensation and ANI calculations remain planned.
+**Implemented foundations.** The M1.2 scaffold provides local startup and health checks. M1.3 adds versioned 2026/27 rules, inclusive UK tax-year dates and dated GBP evidence in the Python domain. M1.4 adds effective-dated salary and dated bonus calculations in the Python domain, with payroll provenance and an explicit pension reduction basis. Pension and ANI calculations remain planned.
