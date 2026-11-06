@@ -174,6 +174,15 @@ def _dated_salary_amount(
             ):
                 warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus amount, source and pay basis."))
                 return None
+            # A known payroll payment already includes this bonus. Its taxable
+            # receipt can still be earlier through entitlement.
+            if (
+                pay.timing in ("payment_date", "unconfirmed_entitlement")
+                and bonus.timing != "unknown_date"
+                and bonus.money.on > pay.money.on
+            ):
+                warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus date with the payroll payment."))
+                return None
         if part.amount_gbp is not None:
             included += Fraction(part.amount_gbp)
     if pay.money.amount_gbp is None:

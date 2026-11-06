@@ -307,3 +307,60 @@ def test_salary_payment_covers_only_its_part_of_multiple_rate_periods():
     )
     # 238 days at £200/day, 125 days at £300/day and £700 actual.
     assert result.gross_salary_gbp == 85800
+
+
+@pytest.mark.parametrize(("bonus_timing", "bonus_on", "entitlement_on", "expected"), [
+    ("payment_date", "2027-04-06", None, None),
+    ("payment_date", "2027-04-06", date(2027, 4, 5), None),
+    ("confirmed_receipt", "2027-04-06", None, None),
+    ("payment_date", "2027-04-05", date(2027, 4, 4), 1000),
+    ("confirmed_receipt", "2027-04-04", None, 1000),
+])
+def test_payroll_inclusion_reconciles_bonus_dates(bonus_timing, bonus_on, entitlement_on, expected):
+    result = calculate(
+        payroll=[payroll(pay("payslip", "81000"), "2026-04-06", "2027-04-05", components=(
+            PayrollComponent("bonus", "bonus", Decimal("1000")),
+        ))],
+        bonuses=[pay("bonus", "1000", bonus_on, timing=bonus_timing, entitlement_on=entitlement_on)],
+    )
+    assert result.gross_bonus_gbp == expected
+    if expected is None:
+        assert result.status == "incomplete"
+        assert result.gross_salary_gbp is None
+        assert any(warning.field == "payslip" for warning in result.warnings)
+    else:
+        assert result.status == "confirmed"
+        assert result.gross_salary_gbp == 80000
+
+
+def test_payroll_receipt_due_to_entitlement_does_not_establish_a_payment_date():
+    result = calculate(
+        payroll=[payroll(pay("payslip", "81000", timing="confirmed_receipt"),
+                         "2026-04-06", "2027-04-05", components=(
+                             PayrollComponent("bonus", "bonus", Decimal("1000")),
+                         ))],
+        bonuses=[pay("bonus", "1000", "2027-04-06", entitlement_on=date(2027, 4, 4))],
+    )
+    assert result.status == "confirmed"
+    assert result.gross_bonus_gbp == 1000
+
+
+@pytest.mark.parametrize(("bonus_on", "expected_status", "expected_bonus"), [
+    ("2026-04-05", "confirmed", 0),
+    ("2026-04-06", "incomplete", None),
+])
+def test_prior_year_payroll_reconciles_linked_bonus_if_it_enters_selected_year(
+    bonus_on, expected_status, expected_bonus,
+):
+    result = calculate(salary=[period("unpaid", "0")], payroll=[
+        payroll(pay("payslip", "81000", "2026-04-05"), "2026-03-01", "2026-04-05", components=(
+            PayrollComponent("bonus", "bonus", Decimal("1000")),
+        )),
+        payroll(pay("unrelated", "80000", "2026-02-28"), "2026-02-01", "2026-02-28", components=None),
+    ], bonuses=[pay("bonus", "1000", bonus_on)])
+
+    assert result.status == expected_status
+    assert result.gross_bonus_gbp == expected_bonus
+    assert {warning.field for warning in result.warnings} == (
+        {"payslip"} if expected_status == "incomplete" else set()
+    )
