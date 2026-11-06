@@ -39,6 +39,7 @@ class TaxRules:
     taper_threshold_gbp: Decimal
     taper_reduction_per_pound: Decimal
     allowance_floor_gbp: Decimal
+    basic_relief_rate: Decimal
 
 
 _RULES = TaxRules(
@@ -54,6 +55,8 @@ _RULES = TaxRules(
     taper_threshold_gbp=Decimal("100000"),
     taper_reduction_per_pound=Decimal("0.5"),
     allowance_floor_gbp=Decimal("0"),
+    # HMRC ANI guidance, steps 2 and 3, verified for 2026/27.
+    basic_relief_rate=Decimal("0.20"),
 )
 
 

@@ -17,6 +17,7 @@ from .primitives import DateRange, InputError, Problem, validate_gbp
 from .tax_year import TaxRules
 
 
+PayrollMethod = Literal["salary_sacrifice", "net_pay"]
 PayBasis = Literal["before_reductions", "after_reductions", "unknown"]
 ReceiptTiming = Literal["payment_date", "confirmed_receipt", "unconfirmed_entitlement", "unknown_date"]
 PayKind = Literal["salary", "bonus"]
@@ -56,16 +57,30 @@ class PayEvent:
     timing: ReceiptTiming
     basis: PayBasis
     entitlement_on: date | None = None
+    reflected_methods: tuple[PayrollMethod, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.timing not in ("payment_date", "confirmed_receipt", "unconfirmed_entitlement", "unknown_date"):
             raise InputError("timing", "Specify how the taxable receipt date was determined.")
         if self.basis not in ("before_reductions", "after_reductions", "unknown"):
             raise InputError("basis", "Specify whether pay is before or after payroll pension reductions.")
+        methods = self.reflected_methods
+        if methods is not None and (
+            self.basis != "after_reductions" or not methods
+            or any(method not in ("salary_sacrifice", "net_pay") for method in methods)
+            or len(set(methods)) != len(methods)
+        ):
+            raise InputError("reflected_methods", "List each method already reflected in after-reductions pay once.")
         if self.entitlement_on is not None and (
             type(self.entitlement_on) is not date or self.timing != "payment_date"
         ):
             raise InputError("entitlement_on", "Supply a date-only entitlement date alongside a payment date.")
+
+    @property
+    def reflected_payroll_methods(self) -> tuple[PayrollMethod, ...]:
+        if self.basis != "after_reductions":
+            return ()
+        return self.reflected_methods or ("salary_sacrifice", "net_pay")
 
     @property
     def receipt_on(self) -> date | None:
@@ -120,6 +135,14 @@ class EmploymentLine:
     replaced_by: str | None = None
 
     @property
+    def reflected_methods(self) -> tuple[PayrollMethod, ...]:
+        source = self.source
+        if isinstance(source, SalaryPeriod):
+            return ()
+        pay = source.pay if isinstance(source, SalaryPayment) else source
+        return pay.reflected_payroll_methods
+
+    @property
     def basis(self) -> PayBasis:
         if isinstance(self.source, SalaryPeriod):
             return "before_reductions"
@@ -170,9 +193,10 @@ def _dated_salary_amount(
             if bonus is None or (
                 bonus.money.amount_gbp != part.amount_gbp
                 or bonus.basis != pay.basis
+                or set(bonus.reflected_payroll_methods) != set(pay.reflected_payroll_methods)
                 or bonus.money.source_status != pay.money.source_status
             ):
-                warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus amount, source and pay basis."))
+                warnings.append(Problem("incomplete", pay.money.event_id, "Reconcile the linked bonus amount, source and reflected payroll methods."))
                 return None
             # A known payroll payment already includes this bonus. Its taxable
             # receipt can still be earlier through entitlement.

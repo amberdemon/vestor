@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives and M1.4 salary and bonus domain implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives M1.4 salary and bonus domain, and M1.5 pension and Gift Aid domain implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -65,7 +65,8 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 20
 - **Net pay arrangement:** contributions reduce taxable pay through payroll, subject to applicable rules; do not deduct twice.
 - **Relief at source:** gross up eligible personal contributions for basic-rate relief and use appropriate ANI adjustment; do not mislabel the net payment as gross.
 - **Employer pension contributions** are not automatically employee taxable income or an ANI deduction; maintain a separate annual allowance view.
-- Add supported Gift Aid and other permitted adjustments explicitly, never as hidden deductions.
+- M1.5 applies payroll reductions to linked employment lines using an explicit before/after basis per method and the eligible pay base. Effective-dated salary sacrifice schedules use the calendar-day convention. Dated payroll reductions use the known or expected payroll evidence.
+- Eligible gross pension paid without prior relief, relief-at-source pension, and qualifying cash Gift Aid produce separate dated deductions. Ordinary employer contributions remain visible as funding evidence. See the [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) for supported inputs and remaining constraints.
 
 ### Core outputs
 - `employment_income_gbp`, `other_relevant_income_gbp`, `adjustments_gbp`, `ani_gbp`.
