@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold, M1.3 domain primitives and M1.4 salary and bonus calculations implemented. Pension and ANI calculations remain planned.
+**Status:** M1.2 scaffold and M1.3–M1.6 domain calculations for tax-year evidence, salary, bonus, pensions, Gift Aid and benefits implemented. The combined ANI calculation remains planned.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -45,6 +45,11 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 - The Python domain applies valid salary or bonus sacrifice before any applicable net-pay deduction, using the reported employment basis for each method and retaining payroll evidence.
 - Dated gross pension, relief-at-source pension and Gift Aid evidence supplies separate deductions for the eventual ANI waterfall. Ordinary employer contributions are recorded separately.
 - The [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) describes eligibility confirmation, date handling, supported pay bases and warnings. The ANI engine and calculator UI follow in M1.9 and M1.10.
+
+## Implemented M1.6 taxable benefits domain
+
+- The Python domain values supported annual taxable forecasts across inclusive renewal dates and replaces only explicitly linked confirmed coverage. Payroll and P11D amounts retain their actual basis. Premiums and employee payments remain source evidence.
+- The [M1.6 domain contract](M1_FINANCIAL_CONTRACT.md#m16-taxable-benefit-domain) describes date clipping, payroll reconciliation and limitations.
 
 ## Financial rules and edge cases
 
