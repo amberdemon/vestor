@@ -51,6 +51,12 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 - The Python domain values supported annual taxable forecasts across inclusive renewal dates and replaces only explicitly linked confirmed coverage. Payroll and P11D amounts retain their actual basis. Premiums and employee payments remain source evidence.
 - The [M1.6 domain contract](M1_FINANCIAL_CONTRACT.md#m16-taxable-benefit-domain) describes date clipping, payroll reconciliation and limitations.
 
+## Implemented M1.7 manual GBP RSU income domain
+
+- The Python domain resolves dated gross GBP vest income and explicitly linked actual replacements, preserving source evidence and tax-year boundaries.
+- Ordinary supported award treatment and charge dates require confirmation. Named payroll component reconciliation prevents duplicate addition. Sold-to-cover information has no effect on gross taxable income.
+- The [M1.7 contract](M1_FINANCIAL_CONTRACT.md#m17-manual-gbp-rsu-income-domain) documents inputs and limitations. UI and combined ANI calculations remain planned.
+
 ## Financial rules and edge cases
 
 The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the implementation rules and fixture expectations for this scope.
