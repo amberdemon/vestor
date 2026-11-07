@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, and M1.6 taxable benefits domain implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, and M1.7 manual GBP RSU income domain implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -58,6 +58,7 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 20
 - Employer-funded taxable benefits are included at their **taxable benefit value** (payrolled or P11D as appropriate), not mechanically at displayed employer premiums if a different valuation applies.
 - For annual taxable values changing on renewal, time-apportion only when appropriate to the benefit's taxable valuation method. Label estimates and prefer payroll facts.
 - Include applicable other taxable income even if the tax on it is reduced by savings/dividend allowances.
+- M1.7 accepts manual gross GBP vest events with confirmed ordinary award treatment and charge dates. Explicit actual links supersede forecasts before tax-year filtering. Named payroll components reconcile the included gross amount in both directions; unresolved inclusion suppresses the RSU subtotal. Sold-to-cover percentages are informational only. See the [M1.7 contract](M1_FINANCIAL_CONTRACT.md#m17-manual-gbp-rsu-income-domain).
 - CGT is separate and excluded from ANI.
 
 ### Pension methods (do not double count)
