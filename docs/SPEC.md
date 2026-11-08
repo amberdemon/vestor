@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, and M1.7 manual GBP RSU income domain implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, and M1.8 other-income domain implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -30,7 +30,7 @@ Dated inputs carry `source_status` (`actual`, `forecast` or `unknown`), `source_
 - Bonuses have a stable event ID, payment or confirmed taxable receipt date, entitlement evidence, GBP amount, source status and pension reduction basis. A confirmed record can explicitly link to the forecast it supersedes.
 - Pension: employer and employee funding separately; methods `salary_sacrifice|net_pay|relief_at_source|other`, contribution bases, percentage or amount, effective dates, gross-up where applicable.
 - Benefit: stable benefit and period IDs, category, inclusive effective periods, taxable status (`yes|no|unknown`), and annual taxable forecast or confirmed payroll/P11D value. Annual premium, payer and employee contributions are separate evidence. Use explicit actual replacement links and named payroll links for amounts already included in entered pay. See the [M1.6 benefit contract](M1_FINANCIAL_CONTRACT.md#m16-taxable-benefit-domain).
-- Other taxable income: interest, dividends, rental and miscellaneous categories, allowable deductions / gift aid as separate explicit inputs. Do not equate zero tax due on an income stream with zero inclusion in ANI.
+- Other income: gross taxable interest/dividends and manually determined nonnegative taxable UK trading/property profits. Explicit exemption reasons and unknown treatment remain separate. Dated receipts or stated assessment-year totals identify covered income streams; overlapping summaries/components block the subtotal. Generic other income is unsupported. Qualifying adjustments remain solely in the M1.5 contract. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain).
 
 ### RSU and transactions
 - Vest: identifier, date, grant reference, shares acquired, gross vest FMV per share / total in USD, **confirmed GBP taxable payroll amount** when available, event-date FX rate/source, scheme notes.
