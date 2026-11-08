@@ -9,3 +9,7 @@
 !frontend/src/*.ts
 !frontend/src/*.tsx
 !frontend/src/*.css
+!backend/vestor_wire.py
+!frontend/e2e/
+!frontend/e2e/**
+!frontend/playwright.config.ts

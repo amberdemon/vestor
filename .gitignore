@@ -10,3 +10,6 @@ backend/static/
 data/
 *.sqlite*
 *.db
+
+frontend/test-results/
+frontend/playwright-report/

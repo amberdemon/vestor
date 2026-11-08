@@ -15,7 +15,7 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 COPY backend/requirements.txt ./
 RUN python -m pip install --no-cache-dir --no-deps -r requirements.txt
-COPY backend/vestor_api.py ./
+COPY backend/vestor_api.py backend/vestor_wire.py ./
 COPY backend/vestor_domain/ ./vestor_domain/
 
 FROM backend AS backend-checks
@@ -25,7 +25,7 @@ COPY backend/tests/ ./tests/
 RUN python -m pip check \
     && python -S -c "from vestor_domain.decimal_example import add_decimals" \
     && python -m pytest \
-    && python -m mypy --strict vestor_api.py vestor_domain
+    && python -m mypy --strict vestor_api.py vestor_wire.py vestor_domain
 
 FROM backend AS runtime
 COPY --from=frontend-build /app/dist/ ./static/

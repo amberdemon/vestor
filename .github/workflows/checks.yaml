@@ -1,4 +1,4 @@
-name: Scaffold checks
+name: Local calculator checks
 
 on:
   pull_request:
@@ -29,16 +29,17 @@ jobs:
           docker compose down
           docker compose up --no-build --pull never -d
           curl --fail --retry 15 --retry-all-errors --retry-delay 1 http://127.0.0.1:8000/api/health
-      - name: Verify rendered shell
+      - name: Browser calculator scenarios (desktop and mobile)
         run: |
-          google-chrome --headless --no-sandbox --disable-background-networking --proxy-server=127.0.0.1:1 \
-            --virtual-time-budget=5000 --window-size=1000,600 \
-            --screenshot="${RUNNER_TEMP}/vestor-shell.png" --dump-dom http://127.0.0.1:8000/ > "${RUNNER_TEMP}/vestor-shell.html"
-          grep -F 'Local API connected.' "${RUNNER_TEMP}/vestor-shell.html"
+          docker run --rm --network host -e CI=1 -v "$PWD/frontend:/app" -w /app node:24.18.0-bookworm-slim \
+            sh -c 'npm ci && npm exec playwright install --with-deps chromium && npm run e2e'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
         with:
-          name: vestor-shell
-          path: ${{ runner.temp }}/vestor-shell.png
+          name: vestor-calculator-browser-evidence
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
           if-no-files-found: error
       - name: Stop Compose
         if: always()
