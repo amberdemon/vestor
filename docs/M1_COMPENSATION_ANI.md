@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold and M1.3–M1.6 domain calculations for tax-year evidence, salary, bonus, pensions, Gift Aid and benefits implemented. The combined ANI calculation remains planned.
+**Status:** M1.2 scaffold and M1.3–M1.8 domain calculations for tax-year evidence, salary, bonus, pensions, Gift Aid, benefits, manual GBP RSU income and other income implemented. The combined ANI calculation remains planned.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -56,6 +56,12 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 - The Python domain resolves dated gross GBP vest income and explicitly linked actual replacements, preserving source evidence and tax-year boundaries.
 - Ordinary supported award treatment and charge dates require confirmation. Named payroll component reconciliation prevents duplicate addition. Sold-to-cover information has no effect on gross taxable income.
 - The [M1.7 contract](M1_FINANCIAL_CONTRACT.md#m17-manual-gbp-rsu-income-domain) documents inputs and limitations. UI and combined ANI calculations remain planned.
+
+## Implemented M1.8 other-income domain
+
+- The Python domain includes gross taxable interest/dividends before nil-rate allowances and manual nonnegative UK trading/property taxable profit totals for a stated assessment year. Explicit exemptions retain their reason and source evidence.
+- Dated receipts and tax-year totals have explicit allocation and covered stream IDs. Linked actual evidence replaces forecasts; overlapping consolidated totals and components block the subtotal. Unknown treatment or allocation remains incomplete; generic other income is unsupported.
+- Gift Aid and qualifying pension adjustments remain in the existing M1.5 domain and are not subtracted from this income subtotal. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain). Combined ANI and UI remain planned.
 
 ## Financial rules and edge cases
 
