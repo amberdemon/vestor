@@ -61,7 +61,7 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 - The Python domain includes gross taxable interest/dividends before nil-rate allowances and manual nonnegative UK trading/property taxable profit totals for a stated assessment year. Explicit exemptions retain their reason and source evidence.
 - Dated receipts and tax-year totals have explicit allocation and covered stream IDs. Linked actual evidence replaces forecasts; overlapping consolidated totals and components block the subtotal. Unknown treatment or allocation remains incomplete; generic other income is unsupported.
-- Gift Aid and qualifying pension adjustments remain in the existing M1.5 domain and are not subtracted from this income subtotal. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain). Combined ANI and UI remain planned.
+- Gift Aid and qualifying pension adjustments remain in the existing M1.5 domain and are not subtracted from this income subtotal. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain). Combined ANI is implemented in M1.9; UI remains planned.
 
 ## Financial rules and edge cases
 
@@ -139,3 +139,7 @@ CGT, share matching, brokers/Wise integration, tax withholding, full PAYE or NI 
 - [HMRC benefits reporting](https://www.gov.uk/expenses-and-benefits-medical-treatment)
 
 **Authoritative HMRC text must be reviewed for implementation-specific nuances; these links do not eliminate the need for independently tested rules.**
+
+## Implemented M1.9 combined ANI domain
+
+The pure `calculate_ani` entry point composes all supported raw domain inputs through the existing component calculators. It returns the signed source-linked waterfall, HMRC net income, ANI, statutory allowance and optional target headroom. Exact fractions survive intermediate day weighting; source evidence, effective dates, replacement decisions and rule metadata survive serialization. Material unknown/unsupported states suppress final outputs. [Financial contract and supported limits](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain). M1.10 UI/API and M1.11 independent release verification remain planned; this does not mark M1 complete.
