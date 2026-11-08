@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, and M1.8 other-income domain implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, M1.8 other-income domain, and M1.9 combined ANI engine implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -204,3 +204,11 @@ Check official current tax-year guidance before coding or releasing changes:
 - HMRC [Income Tax rates and allowances](https://www.gov.uk/income-tax-rates)
 
 These are reference entry points, **not** confirmation that every described edge case is currently verified. Implementers must verify the applicable tax year and relevant HMRC manual or legislation section.
+
+## Implemented M1.9 ANI engine
+
+`vestor_domain.ani.calculate_ani(AniInputs(...))` is the pure entry point for raw typed component evidence. It selects verified rules and invokes employment, pension, benefits, RSU and other-income domains before producing a source-linked waterfall. Coverage or explicit absence is required for every category. The input evidence, all component dates, replacement decisions, warnings and rules metadata remain inspectable; no API or UI integration ships with this issue.
+
+The waterfall reports salary and bonus after payroll reductions, gross RSUs, taxable benefits, other taxable income, qualifying gross pension at the net-income step, then gross Gift Aid and relief-at-source deductions at the ANI step. Already included payroll components contribute once. Source IDs must be unique across categories; component references are links to the original evidence. The remaining standard Personal Allowance is rounded up to whole pounds from **unrounded ANI**. Signed headroom is optional target minus ANI; it is not a pension recommendation.
+
+Results use exact rational amounts and a deterministic `to_wire()` representation containing exact numerator/denominator strings and half-up GBP displays. The `rounding_discrepancy_gbp` field is displayed ANI minus the sum of independently rounded signed waterfall rows; a nonzero difference must be disclosed by consumers. It is informational and does not change the financial result status. Incomplete/unsupported results suppress ANI, allowance and headroom while retaining known component evidence. No full income-tax, NI, CGT, cash or optimisation result is provided. See the [financial contract](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain).
