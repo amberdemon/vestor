@@ -4,14 +4,14 @@
 
 Vestor is a local-first UK adjusted net income (ANI) planner for salary, bonuses, manual GBP RSU vest income, taxable benefits, pension contributions, Gift Aid and supported other income. It keeps actual and forecast evidence separate and explains the £100,000 Personal Allowance taper and headroom to your chosen ANI target.
 
-> **Status:** M1 calculator and deterministic ANI engine implemented. [Release verification and supported limitations](docs/M1_RELEASE_VERIFICATION.md) record the acceptance gate for [#12](https://github.com/amberdemon/vestor/issues/12). Estimates are planning aids, not tax advice. No full tax bill, take-home cash, USD/FX, share disposals/CGT, pension optimiser or durable storage is provided.
+> **Status:** M1 calculator and deterministic ANI engine implemented. [Release verification and supported limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and the release acceptance process in [#12](https://github.com/amberdemon/vestor/issues/12). Estimates are planning aids, not tax advice. No full tax bill, take-home cash, USD/FX, share disposals/CGT, pension optimiser or durable storage is provided.
 
 - [Project overview and roadmap](PROJECT.md)
 - [Product and financial rules specification](docs/SPEC.md)
 - [M1 milestone specification](docs/M1_COMPENSATION_ANI.md) and [M1 implementation tracker](https://github.com/amberdemon/vestor/issues/1)
 - [Instructions for coding agents](AGENTS.md)
 
-Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Final release PR review, CI and merge remain required; see the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
+Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). See the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
 
 ## Run locally
 

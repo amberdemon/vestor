@@ -2,13 +2,13 @@
 
 [Verification issue #12](https://github.com/amberdemon/vestor/issues/12) · [M1 tracker #1](https://github.com/amberdemon/vestor/issues/1) · [Financial contract](M1_FINANCIAL_CONTRACT.md)
 
-**Gate status: release execution and independent financial verification passed on 9 November 2026; final PR-head review, CI and merge remain required.** This report records the implemented scope and observed acceptance evidence. Close #12 and then tracker #1 only after the final release PR is accepted/merged and its review/CI evidence is linked in #12.
+**Verification:** supported M1 scope, clean-checkout execution and all 34 independent financial scenarios verified on 9 November 2026. **Release acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23).** The exact final commit, independent review verdict, CI result and browser artifacts are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). Close #12 and then tracker #1 only after that acceptance is established.
 
 The release candidate is main commit `80635ab`, containing implementation issues #2–#11. Release verification adds documentation and a reproducible offline smoke check/CI step to that candidate; financial application behavior is unchanged. All examples, browser inputs and screenshots are synthetic.
 
 ## Acceptance evidence
 
-The evidence paths below map acceptance to the clean-checkout release runs and independent arithmetic recorded in the next sections. Final release PR-head review/CI/merge remain separate gates.
+The evidence paths below map acceptance to the clean-checkout release runs and independent arithmetic recorded in the next sections. The final release acceptance process is the reviewed, passing merge of PR #23, with its exact-head evidence recorded in #12.
 
 | M1 acceptance item | Evidence | Release gate |
 | --- | --- | --- |
@@ -27,16 +27,17 @@ Checks ran from a clean checkout of `80635ab27f6544ee70af43412b702ac5840aba51` o
 
 | Check | Command / method | Observed result |
 | --- | --- | --- |
-| Backend / contracts / types | `docker build --target backend-checks .` (dependency check, import isolation, full pytest and strict mypy) | PASS: 322 pytest cases; mypy clean across 13 source files; dependency/import checks pass |
-| Frontend / types | `docker build --target frontend-checks .` (TypeScript and Vitest) | PASS: TypeScript and 13 Vitest tests |
-| Production build and startup | `docker compose up --build -d`; fetch `/` and `/api/health` | PASS: production build, Vestor HTML and health `{ "status": "ok" }` |
-| Host binding | `docker compose port app 8000`, inspect published host address | PASS: `127.0.0.1:8000` |
+| Backend / contracts / types | `docker buildx build --no-cache-filter backend-checks --target backend-checks -t vestor-release-backend-checks --progress=plain .` (fresh check stage: dependency check, import isolation, full pytest and strict mypy) | PASS: 322 pytest cases; mypy clean across 13 source files; dependency/import checks pass |
+| Frontend / types | `docker buildx build --no-cache-filter frontend-checks --target frontend-checks --progress=plain .` (fresh check stage: TypeScript and Vitest) | PASS: TypeScript and 13 Vitest tests |
+| Production build and startup | `docker compose -p vestor-release-clean up --build -d`; fetch `/` and `/api/health` | PASS: production build, Vestor HTML and health `{ "status": "ok" }` |
+| Restart without rebuild/pull | `docker compose -p vestor-release-clean down`; `docker compose -p vestor-release-clean up --no-build --pull never -d`; recheck health and published port | PASS: health and exact `127.0.0.1:8000` binding after restart |
+| Host binding | `docker compose -p vestor-release-clean port app 8000`, inspect published host address | PASS: `127.0.0.1:8000` |
 | Offline core after installation | Runtime image with `--network none`, mounted `backend/tests/offline_smoke.py`; command below | PASS: health, HTML, bundled JS/CSS and F1 calculation with no container external network |
 | Pinned Linux browsers | CI-equivalent Node `24.18.0-bookworm-slim`, package-pinned Playwright `1.56.1`, Chromium build `1194`, desktop and iPhone 13 viewport projects | PASS: 10/10 in 16.5 seconds |
 | Independent arithmetic | Separate integer/Fraction expectations and independently constructed inputs compared with public domain and exact serialization | PASS: 34/34, no discrepancies; complete matrix below |
-| Final candidate review / CI | Exact final PR head reviewed independently; all required CI checks pass | PENDING |
+| Final release acceptance | Reviewed, passing merge of [PR #23](https://github.com/amberdemon/vestor/pull/23), covering its final commit | Exact commit, independent review and CI verdict recorded in [#12](https://github.com/amberdemon/vestor/issues/12) |
 
-After building the runtime with Compose, reproduce the disconnected runtime check from the repository root:
+The observed disconnected command used image `vestor-release-clean-app`, `--network none`, a read-only smoke-script mount and `--entrypoint python`. After building with Compose, this equivalent command from the repository root also makes the runtime filesystem read-only:
 
 ```sh
 docker run --rm --network none --read-only \
@@ -46,7 +47,17 @@ docker run --rm --network none --read-only \
 
 Observed output: `PASS disconnected runtime health, HTML, all bundled JS/CSS assets, and synthetic F1 API calculation.` The script starts the local server inside the isolated container and requests its loopback address, fetching bundled assets and asserting ANI £78,400, allowance £12,570 and headroom £21,600. This proves the built runtime serves the calculator and calculates without external connectivity. The browser suite separately proves the UI flow against the same financial application code. Image/dependency installation remains an online prerequisite.
 
-The pinned Linux browser command matches CI (with Compose already running):
+The observed pinned Linux browser command ran from the clean checkout, sharing the Compose container's network namespace so the default `127.0.0.1:8000` URL reached the app. An anonymous volume isolated `node_modules`:
+
+```sh
+docker run --rm --name vestor-release-browser \
+  --network container:vestor-release-clean-app-1 -e CI=1 \
+  -v "$PWD/frontend:/app" -v /app/node_modules -w /app \
+  node:24.18.0-bookworm-slim \
+  sh -c 'npm ci && npm exec -- playwright install --with-deps chromium && npm run e2e'
+```
+
+CI uses this equivalent Linux host-network command with Compose already running:
 
 ```sh
 docker run --rm --network host -e CI=1 \
@@ -60,7 +71,7 @@ Source review covers native labelled controls, fieldsets/legends, keyboard-focus
 
 Prior #11 screenshots were visually inspected for readable desktop/mobile F1 and mixed results. F1 shows ANI £78,400, standard allowance £12,570 and desktop headroom £21,600; the mixed scenario shows ANI £85,156.44. Mobile totals stack vertically and rule text wraps. These are sampled result views, not a full screen-reader or WCAG conformance audit. The clean-checkout pinned-browser rerun passed all ten desktop/mobile cases; the final release CI artifact link will be attached in #12.
 
-Prior browser evidence: [PR #22](https://github.com/amberdemon/vestor/pull/22), [CI run 42581770627](https://github.com/amberdemon/vestor/actions/runs/42581770627). Final release screenshot/report artifact: to be linked with the final PR-head CI result in [#12](https://github.com/amberdemon/vestor/issues/12).
+Prior browser evidence: [PR #22](https://github.com/amberdemon/vestor/pull/22), [CI run 42581770627](https://github.com/amberdemon/vestor/actions/runs/42581770627), [browser artifact 13656904907](https://github.com/amberdemon/vestor/actions/runs/42581770627/artifacts/13656904907). Final release screenshot/report artifact: to be linked with the final PR-head CI result in [#12](https://github.com/amberdemon/vestor/issues/12).
 
 Privacy review: `frontend/src/api.ts` sends one same-origin calculation request, with no stock/FX/analytics calls. Financial inputs live in React memory; no database or browser-storage writes are implemented. The F1 browser test observes no cross-origin requests, verifies empty local/session storage and confirms refresh discards the result. Opening an official source link is an explicit external navigation, not a background data feed.
 
@@ -150,4 +161,4 @@ SPEC F1–F3/F7–F10 and the financial contract's M1 fixture table are the rele
 | #10 / M1.9 | Combined ANI and allowance | [#21](https://github.com/amberdemon/vestor/pull/21) |
 | #11 / M1.10 | Local calculator and strict API | [#22](https://github.com/amberdemon/vestor/pull/22) |
 
-Release acceptance must also link the #12 PR, passing final CI and independent reviewer verdict in #12. Close tracker #1 only after the verification PR is accepted/merged and every child acceptance item is recorded complete.
+The verification delivery is [PR #23](https://github.com/amberdemon/vestor/pull/23). Release acceptance requires its reviewed, passing merge, with the exact final commit, CI and independent reviewer verdict recorded in [#12](https://github.com/amberdemon/vestor/issues/12). Close tracker #1 after that acceptance and every child acceptance item is recorded complete.

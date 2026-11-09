@@ -6,7 +6,7 @@
 **Document owner:** product / engineering; review financial rules before code merges  
 **Priority:** deterministic, explainable calculations over feature breadth
 
-Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Final release PR review, CI and merge remain required; see the [release evidence](M1_RELEASE_VERIFICATION.md).
+Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). See the [release evidence](M1_RELEASE_VERIFICATION.md).
 
 ## 1. Goal and calculation contract
 
@@ -223,4 +223,4 @@ The React calculator now exposes repeatable M1 record forms for effective-dated 
 
 A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
 
-Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. The [release verification report](M1_RELEASE_VERIFICATION.md) records the #12 acceptance gate and supported limitations. See [calculator usage and checks](../README.md#using-the-m1-calculator).
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. The [release verification report](M1_RELEASE_VERIFICATION.md) records supported limitations and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23). See [calculator usage and checks](../README.md#using-the-m1-calculator).
