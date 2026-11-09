@@ -8,7 +8,7 @@ Headline question:
 
 > **How much extra cash can I safely spend from my compensation, and what pension contribution gets me to my desired adjusted net income?**
 
-A user can model their compensation across a UK tax year, change future share prices, FX rates and bonus amounts, and see an explainable calculation of:
+The complete product vision is to model compensation across a UK tax year, change future share prices, FX rates and bonus amounts, and show:
 - projected **adjusted net income (ANI)**, with headroom to a user-defined target (initially £100,000);
 - additional gross pension contribution or salary sacrifice needed to reach that target;
 - estimated spendable proceeds from RSU sales and net bonuses;
@@ -16,6 +16,10 @@ A user can model their compensation across a UK tax year, change future share pr
 - uncertainty, unsupported cases and data yet to be confirmed.
 
 This is a planning tool, **not** a payroll engine, tax filing service, personal investment adviser or successor to Payday. Payday answers cash-flow questions; Vestor answers compensation, tax and pension-scenario questions.
+
+**Implemented M1 scope:** a transient local calculator for supported 2026/27 England/Northern Ireland ANI, standard Personal Allowance and signed target headroom. Share prices, FX, disposals, spendable cash and pension recommendations remain future scope. [M1 release evidence and limitations](docs/M1_RELEASE_VERIFICATION.md) track final acceptance in #12; the tracker stays open until that gate is accepted.
+
+Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Final release PR review, CI and merge remain required; see the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
 
 ## 2. Non-negotiable product principles
 
@@ -30,7 +34,7 @@ This is a planning tool, **not** a payroll engine, tax filing service, personal 
 9. **User control.** Editing a scenario must never rewrite actual events or source records.
 10. **Issue-sized development.** Each milestone has documented acceptance criteria; code agents work from focused GitHub issues.
 
-## 3. Target user experience
+## 3. Planned full-product experience
 
 - A **tax-year dashboard** presents salary, RSUs, bonus, employer benefits, pension, other income, projected ANI and progress against the target.
 - A **compensation calendar** shows actual and predicted vestings, bonus dates, sales and pension elections.
@@ -79,7 +83,7 @@ This is a planning tool, **not** a payroll engine, tax filing service, personal 
 
 ## 5. Engineering direction
 
-**M1.2 scaffold architecture:** a pure Python `Decimal` domain, a thin FastAPI bridge and a React/TypeScript/Vite shell. FastAPI serves the built UI and health endpoint on one loopback-only Docker Compose port. pytest, mypy, TypeScript and Vitest run in Docker and PR CI. See the [architecture decision](docs/M1_APP_ARCHITECTURE.md) and [local commands](README.md#run-locally). SQLite remains planned for M4.
+**Implemented M1 architecture:** a pure Python `Decimal`/exact-rational domain, a thin FastAPI calculation bridge and a React/TypeScript/Vite calculator. FastAPI serves the built UI and health endpoint on one loopback-only Docker Compose port. pytest, mypy, TypeScript and Vitest run in Docker and PR CI. See the [architecture decision](docs/M1_APP_ARCHITECTURE.md) and [local commands](README.md#run-locally). SQLite remains planned for M4.
 
 For early M1, a minimal functional interface is acceptable. Prioritise the deterministic engine; avoid premature microservices, user login, real-time quote providers, background jobs, bank connectors, Kubernetes and an AI tax-calculation layer. No automatic fetching of historical tax or FX rates is required for core use: user-entered rates must work offline.
 
@@ -124,7 +128,7 @@ A milestone is complete only when:
 3. Follow the [M1 tracker](https://github.com/amberdemon/vestor/issues/1) in dependency order, with PR review and tests for each implementation issue.
 4. Do not expand to M2 calculations until M1 has verified results.
 
-**Implemented foundations.** The M1.2 scaffold provides local startup and health checks. M1.3 adds versioned 2026/27 rules, inclusive UK tax-year dates and dated GBP evidence in the Python domain. M1.4 adds effective-dated salary and dated bonus calculations in the Python domain, with payroll provenance and an explicit pension reduction basis. M1.5 adds payroll pension reductions, separate personal pension and Gift Aid deductions, and ordinary employer contribution evidence in the Python domain. M1.6 adds taxable benefit periods, forecast renewals and payroll reconciliation in the Python domain. M1.7 adds manual gross GBP RSU vest income, explicit actual replacement and payroll reconciliation in the Python domain. M1.8 adds supported other-income evidence, assessment-year profit totals and explicit exemptions in the Python domain. M1.9 adds the combined pure ANI waterfall, statutory Personal Allowance and signed target headroom with source evidence and exact arithmetic. M1.10 adds the transient local calculator UI and strict API bridge; M1.11 independent verification remains planned.
+**Implemented foundations.** The M1.2 scaffold provides local startup and health checks. M1.3 adds versioned 2026/27 rules, inclusive UK tax-year dates and dated GBP evidence in the Python domain. M1.4 adds effective-dated salary and dated bonus calculations in the Python domain, with payroll provenance and an explicit pension reduction basis. M1.5 adds payroll pension reductions, separate personal pension and Gift Aid deductions, and ordinary employer contribution evidence in the Python domain. M1.6 adds taxable benefit periods, forecast renewals and payroll reconciliation in the Python domain. M1.7 adds manual gross GBP RSU vest income, explicit actual replacement and payroll reconciliation in the Python domain. M1.8 adds supported other-income evidence, assessment-year profit totals and explicit exemptions in the Python domain. M1.9 adds the combined pure ANI waterfall, statutory Personal Allowance and signed target headroom with source evidence and exact arithmetic. M1.10 adds the transient local calculator UI and strict API bridge; M1.11 release evidence and the remaining acceptance gates are recorded in [the verification report](docs/M1_RELEASE_VERIFICATION.md).
 
 ## Implemented M1.10 local calculator
 
@@ -132,4 +136,4 @@ The React calculator now exposes repeatable M1 record forms for effective-dated 
 
 A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
 
-Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. M1 is not complete until #12 independently verifies the release. See [calculator usage and checks](README.md#using-the-m1-calculator).
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. The [release verification report](docs/M1_RELEASE_VERIFICATION.md) records the #12 acceptance gate and supported limitations. See [calculator usage and checks](README.md#using-the-m1-calculator).

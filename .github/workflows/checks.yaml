@@ -29,6 +29,11 @@ jobs:
           docker compose down
           docker compose up --no-build --pull never -d
           curl --fail --retry 15 --retry-all-errors --retry-delay 1 http://127.0.0.1:8000/api/health
+      - name: Disconnected runtime calculation and assets
+        run: |
+          docker run --rm --network none \
+            -v "$PWD/backend/tests/offline_smoke.py:/app/offline_smoke.py:ro" \
+            --entrypoint python "$(docker compose images -q app)" /app/offline_smoke.py
       - name: Browser calculator scenarios (desktop and mobile)
         run: |
           docker run --rm --network host -e CI=1 -v "$PWD/frontend:/app" -w /app node:24.18.0-bookworm-slim \

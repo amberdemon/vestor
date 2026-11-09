@@ -1,14 +1,16 @@
 # Vestor — Functional and Financial Rules Specification
 
 **Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, M1.8 other-income domain, and M1.9 combined ANI engine and M1.10 local calculator/API implemented
-**Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
+**Implemented M1 jurisdiction:** full-year UK resident employee, England/Northern Ireland, standard Personal Allowance; other jurisdictions/years are explicitly unsupported
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
 **Priority:** deterministic, explainable calculations over feature breadth
 
+Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Final release PR review, CI and merge remain required; see the [release evidence](M1_RELEASE_VERIFICATION.md).
+
 ## 1. Goal and calculation contract
 
-Vestor answers these distinct questions:
+M1 answers question 1. Questions 2–4 describe planned M2/M3 capabilities and are not release outputs:
 1. **Adjusted net income (ANI):** What is the projected ANI for a UK tax year and the shortfall/excess relative to a configured target?
 2. **Pension planning:** What gross additional qualifying pension contribution or valid salary sacrifice would reduce ANI to the requested target, subject to the scheme constraints and available compensation?
 3. **RSU proceeds:** What was taxable when shares vested, what is potentially taxable when shares are sold, what cash is actually receivable, and what remains owed?
@@ -22,7 +24,7 @@ Dated inputs carry `source_status` (`actual`, `forecast` or `unknown`), `source_
 
 ### TaxYear
 - `start_date`, `end_date`, `tax_residence`, `income_tax_jurisdiction`.
-- Versioned income tax rates/bands, Personal Allowance taper, CGT annual exempt amount and rates, employee NI bands/rates, relief rules and validation sources.
+- M1 versions the standard Personal Allowance taper, basic pension/Gift Aid relief rate and validation sources. Income-tax bands, CGT and NI rates are future scope.
 - **No silent fallback** to the latest tax year when a year has no verified rule set.
 
 ### Employment
@@ -65,7 +67,7 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 20
 - **Salary sacrifice:** valid contractual reduction decreases taxable salary or eligible bonus before employment income is counted. Do *not* also subtract it as a personal contribution in ANI.
 - **Net pay arrangement:** contributions reduce taxable pay through payroll, subject to applicable rules; do not deduct twice.
 - **Relief at source:** gross up eligible personal contributions for basic-rate relief and use appropriate ANI adjustment; do not mislabel the net payment as gross.
-- **Employer pension contributions** are not automatically employee taxable income or an ANI deduction; maintain a separate annual allowance view.
+- **Ordinary employer pension contributions** are funding evidence, not an employee ANI deduction. An annual allowance view is future scope.
 - M1.5 applies payroll reductions to linked employment lines using an explicit before/after basis per method and the eligible pay base. Effective-dated salary sacrifice schedules use the calendar-day convention. Dated payroll reductions use the known or expected payroll evidence.
 - Eligible gross pension paid without prior relief, relief-at-source pension, and qualifying cash Gift Aid produce separate dated deductions. Ordinary employer contributions remain visible as funding evidence. See the [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) for supported inputs and remaining constraints.
 
@@ -73,7 +75,7 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 20
 - `employment_income_gbp`, `other_relevant_income_gbp`, `adjustments_gbp`, `ani_gbp`.
 - Personal Allowance taper: for the initial 2026/27 rule set, subtract half the ANI excess above £100,000 from £12,570, floor at zero and round the remaining allowance up to a whole pound.
 - `headroom = target_ani - projected_ani`; can be negative.
-- `extra_qualifying_gross_pension_needed = max(0, projected_ani - target_ani + configured_buffer)` *only for a qualifying contribution that reduces ANI pound-for-pound*. Show feasibility against annual allowance, earnings, employer restrictions, bonus amount, deadlines and method.
+- **Planned M3, not an M1 output:** `extra_qualifying_gross_pension_needed = max(0, projected_ani - target_ani + configured_buffer)` *only for a qualifying contribution that reduces ANI pound-for-pound*. Show feasibility against annual allowance, earnings, employer restrictions, bonus amount, deadlines and method.
 - Tax bands, income tax and NI estimates are a later verified capability, **not** inferred from one effective rate when projected income crosses the taper.
 - Preserve decimal precision, document final rounding and tax-year reporting rules.
 
@@ -170,8 +172,8 @@ Inputs: projected share/FX prices per event, sale timing, bonuses, benefits, sav
 
 - Calculations are pure functions over immutable input DTOs and a versioned rules object, with `Decimal` or exact minor-unit/rational representations; no binary float for money or FX.
 - Return `value`, `status` (confirmed/estimated/incomplete/unsupported), `breakdown`, `warnings`, `source_events` and `rule_version`.
-- APIs (when introduced): create/update compensation events, list tax-year summary, evaluate scenario, explain result; validate all inputs server-side.
-- Local-only persistence; SQLite migrations, export/import data without secrets, and explicit backup semantics.
+- M1 exposes a strict transient calculation API and health check; all inputs are validated server-side. Persisted event CRUD and scenario APIs remain planned.
+- M1 stores no financial records. Local SQLite persistence, migrations, export/import and explicit backup semantics remain M4 scope.
 - No telemetry or remote stock/FX calls necessary. Third-party price integrations are future opt-in features.
 - Deployment via Docker Compose bound to loopback by default. No authentication is acceptable only for local-only deployment.
 - Tax records are sensitive: anonymised test fixtures, no real employee/payroll data in public repository, logs or screenshots.
@@ -187,6 +189,8 @@ Every behaviour-changing issue:
 - does not silently expand later milestone scope.
 
 A milestone must finish with an integration/verification issue, manual scenarios and a signed-off limitations list.
+
+The [M1 release verification report](M1_RELEASE_VERIFICATION.md) maps acceptance to tests, independent arithmetic, release checks and explicit unsupported cases. M2-only F4–F6 remain future regression fixtures.
 
 ## 9. Implementation decisions
 
@@ -207,7 +211,7 @@ These are reference entry points, **not** confirmation that every described edge
 
 ## Implemented M1.9 ANI engine
 
-`vestor_domain.ani.calculate_ani(AniInputs(...))` is the pure entry point for raw typed component evidence. It selects verified rules and invokes employment, pension, benefits, RSU and other-income domains before producing a source-linked waterfall. Coverage or explicit absence is required for every category. The input evidence, all component dates, replacement decisions, warnings and rules metadata remain inspectable; no API or UI integration ships with this issue.
+`vestor_domain.ani.calculate_ani(AniInputs(...))` is the pure entry point for raw typed component evidence. It selects verified rules and invokes employment, pension, benefits, RSU and other-income domains before producing a source-linked waterfall. Coverage or explicit absence is required for every category. The input evidence, all component dates, replacement decisions, warnings and rules metadata remain inspectable; M1.10 supplies the strict API and local UI that consume the same result.
 
 The waterfall reports salary and bonus after payroll reductions, gross RSUs, taxable benefits, other taxable income, qualifying gross pension at the net-income step, then gross Gift Aid and relief-at-source deductions at the ANI step. Already included payroll components contribute once. Source IDs must be unique across categories; component references are links to the original evidence. The remaining standard Personal Allowance is rounded up to whole pounds from **unrounded ANI**. Signed headroom is optional target minus ANI; it is not a pension recommendation.
 
@@ -219,4 +223,4 @@ The React calculator now exposes repeatable M1 record forms for effective-dated 
 
 A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
 
-Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. M1 is not complete until #12 independently verifies the release. See [calculator usage and checks](../README.md#using-the-m1-calculator).
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. The [release verification report](M1_RELEASE_VERIFICATION.md) records the #12 acceptance gate and supported limitations. See [calculator usage and checks](../README.md#using-the-m1-calculator).
