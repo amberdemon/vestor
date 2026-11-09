@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold, M1.3–M1.9 domain calculations and M1.10 local calculator/API implemented. M1.11 independent release verification remains required.
+**Status:** M1 calculator implemented; clean-checkout checks and 34 independent financial scenarios verified on 9 November 2026. [M1.11 release verification](M1_RELEASE_VERIFICATION.md) records supported scope and acceptance through the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23).
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -24,14 +24,16 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 ## M1 release acceptance
 
-- [ ] A clean checkout can launch a loopback-only app through documented Docker Compose commands and run the test suite.
+- [x] A clean checkout can launch a loopback-only app through documented Docker Compose commands and run the test suite.
 - [x] UK tax-year boundaries and England/Northern Ireland 2026/27 standard allowance rules are represented in a versioned data structure with source and as-of date.
-- [ ] Inputs can be entered for salary periods, bonus events, RSU GBP taxable-income events, salary sacrifice/net-pay/relief-at-source pensions, benefits, Gift Aid and other income categories.
-- [ ] Engine rejects bad/ambiguous inputs and reports unknown or unsupported cases; no silent annualisation, duplicate benefits or hidden FX assumptions.
-- [ ] Calculation has a traceable waterfall from taxable gross income through allowed adjustments to ANI; 2026/27 standard Personal Allowance taper and target headroom display correctly.
-- [ ] UI makes actual versus forecast clear, shows 6 April–5 April tax-year scope, date allocation, assumptions, and that inputs are not saved.
-- [ ] Automated tests cover precision, tax boundaries, benefits renewal, payroll actual overrides, all three pension methods, Gift Aid, other income and allowance boundaries.
-- [ ] Final verification issue contains independent worked examples, test results, a limitations list and links to PRs; no unverified tax value is called authoritative.
+- [x] Inputs can be entered for salary periods, bonus events, RSU GBP taxable-income events, salary sacrifice/net-pay/relief-at-source pensions, benefits, Gift Aid and other income categories.
+- [x] Engine rejects bad/ambiguous inputs and reports unknown or unsupported cases; no silent annualisation, duplicate benefits or hidden FX assumptions.
+- [x] Calculation has a traceable waterfall from taxable gross income through allowed adjustments to ANI; 2026/27 standard Personal Allowance taper and target headroom display correctly.
+- [x] UI makes actual versus forecast clear, shows 6 April–5 April tax-year scope, date allocation, assumptions, and that inputs are not saved.
+- [x] Automated tests cover precision, tax boundaries, benefits renewal, payroll actual overrides, all three pension methods, Gift Aid, other income and allowance boundaries.
+- [x] Final verification issue contains independent worked examples, test results, a limitations list and links to PRs; no unverified tax value is called authoritative.
+
+Release checklist evidence is mapped in [M1.11 verification](M1_RELEASE_VERIFICATION.md#acceptance-evidence). Execution and independent arithmetic pass on the recorded application candidate. Release acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit, review and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12).
 
 ## Implemented M1.3 primitives
 
@@ -142,7 +144,7 @@ CGT, share matching, brokers/Wise integration, tax withholding, full PAYE or NI 
 
 ## Implemented M1.9 combined ANI domain
 
-The pure `calculate_ani` entry point composes all supported raw domain inputs through the existing component calculators. It returns the signed source-linked waterfall, HMRC net income, ANI, statutory allowance and optional target headroom. Exact fractions survive intermediate day weighting; source evidence, effective dates, replacement decisions and rule metadata survive serialization. Material unknown/unsupported states suppress final outputs. [Financial contract and supported limits](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain). M1.10 UI/API is implemented; M1.11 independent release verification remains planned; this does not mark M1 complete.
+The pure `calculate_ani` entry point composes all supported raw domain inputs through the existing component calculators. It returns the signed source-linked waterfall, HMRC net income, ANI, statutory allowance and optional target headroom. Exact fractions survive intermediate day weighting; source evidence, effective dates, replacement decisions and rule metadata survive serialization. Material unknown/unsupported states suppress final outputs. [Financial contract and supported limits](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain). M1.10 UI/API is implemented; [M1.11 release verification](M1_RELEASE_VERIFICATION.md) records supported scope and the release acceptance process.
 
 ## Implemented M1.10 local calculator
 
@@ -150,4 +152,4 @@ The React calculator now exposes repeatable M1 record forms for effective-dated 
 
 A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
 
-Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. M1 is not complete until #12 independently verifies the release. See [calculator usage and checks](../README.md#using-the-m1-calculator).
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. The [release verification report](M1_RELEASE_VERIFICATION.md) records supported limitations and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23). See [calculator usage and checks](../README.md#using-the-m1-calculator).
