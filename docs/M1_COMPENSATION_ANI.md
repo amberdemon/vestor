@@ -1,6 +1,6 @@
 # M1 — Compensation & Adjusted Net Income Foundation
 
-**Status:** M1.2 scaffold and M1.3–M1.8 domain calculations for tax-year evidence, salary, bonus, pensions, Gift Aid, benefits, manual GBP RSU income and other income implemented. The combined ANI calculation remains planned.
+**Status:** M1.2 scaffold, M1.3–M1.9 domain calculations and M1.10 local calculator/API implemented. M1.11 independent release verification remains required.
 **Tax year:** UK 2026/27 (6 April 2026–5 April 2027)
 **Jurisdiction:** UK resident, England/Northern Ireland rules for first release. Other jurisdictions/complex residence cases must be explicitly unsupported.
 **Parent:** [PROJECT.md](../PROJECT.md) · [Financial specification](SPEC.md)
@@ -44,7 +44,7 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 - The Python domain applies valid salary or bonus sacrifice before any applicable net-pay deduction, using the reported employment basis for each method and retaining payroll evidence.
 - Dated gross pension, relief-at-source pension and Gift Aid evidence supplies separate deductions for the eventual ANI waterfall. Ordinary employer contributions are recorded separately.
-- The [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) describes eligibility confirmation, date handling, supported pay bases and warnings. The ANI engine and calculator UI follow in M1.9 and M1.10.
+- The [M1.5 domain contract](M1_FINANCIAL_CONTRACT.md#m15-pensions-and-gift-aid-domain) describes eligibility confirmation, date handling, supported pay bases and warnings. The combined ANI engine and local calculator are implemented in M1.9 and M1.10.
 
 ## Implemented M1.6 taxable benefits domain
 
@@ -55,13 +55,13 @@ A user can enter annual salary, effective dates, salary-sacrifice pension, bonus
 
 - The Python domain resolves dated gross GBP vest income and explicitly linked actual replacements, preserving source evidence and tax-year boundaries.
 - Ordinary supported award treatment and charge dates require confirmation. Named payroll component reconciliation prevents duplicate addition. Sold-to-cover information has no effect on gross taxable income.
-- The [M1.7 contract](M1_FINANCIAL_CONTRACT.md#m17-manual-gbp-rsu-income-domain) documents inputs and limitations. UI and combined ANI calculations remain planned.
+- The [M1.7 contract](M1_FINANCIAL_CONTRACT.md#m17-manual-gbp-rsu-income-domain) documents inputs and limitations. Combined ANI calculations and the local calculator are implemented in M1.9/M1.10.
 
 ## Implemented M1.8 other-income domain
 
 - The Python domain includes gross taxable interest/dividends before nil-rate allowances and manual nonnegative UK trading/property taxable profit totals for a stated assessment year. Explicit exemptions retain their reason and source evidence.
 - Dated receipts and tax-year totals have explicit allocation and covered stream IDs. Linked actual evidence replaces forecasts; overlapping consolidated totals and components block the subtotal. Unknown treatment or allocation remains incomplete; generic other income is unsupported.
-- Gift Aid and qualifying pension adjustments remain in the existing M1.5 domain and are not subtracted from this income subtotal. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain). Combined ANI is implemented in M1.9; UI remains planned.
+- Gift Aid and qualifying pension adjustments remain in the existing M1.5 domain and are not subtracted from this income subtotal. See the [M1.8 contract](M1_FINANCIAL_CONTRACT.md#m18-other-income-domain). Combined ANI and the local UI are implemented in M1.9/M1.10.
 
 ## Financial rules and edge cases
 
@@ -142,4 +142,12 @@ CGT, share matching, brokers/Wise integration, tax withholding, full PAYE or NI 
 
 ## Implemented M1.9 combined ANI domain
 
-The pure `calculate_ani` entry point composes all supported raw domain inputs through the existing component calculators. It returns the signed source-linked waterfall, HMRC net income, ANI, statutory allowance and optional target headroom. Exact fractions survive intermediate day weighting; source evidence, effective dates, replacement decisions and rule metadata survive serialization. Material unknown/unsupported states suppress final outputs. [Financial contract and supported limits](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain). M1.10 UI/API and M1.11 independent release verification remain planned; this does not mark M1 complete.
+The pure `calculate_ani` entry point composes all supported raw domain inputs through the existing component calculators. It returns the signed source-linked waterfall, HMRC net income, ANI, statutory allowance and optional target headroom. Exact fractions survive intermediate day weighting; source evidence, effective dates, replacement decisions and rule metadata survive serialization. Material unknown/unsupported states suppress final outputs. [Financial contract and supported limits](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain). M1.10 UI/API is implemented; M1.11 independent release verification remains planned; this does not mark M1 complete.
+
+## Implemented M1.10 local calculator
+
+The React calculator now exposes repeatable M1 record forms for effective-dated salary, dated payroll/component reconciliation, bonus, salary-sacrifice/net-pay reductions, personal pensions and Gift Aid, benefits/renewals, manual GBP RSU vest income and supported other income. Actual/forecast changes preserve source identity; separately linked actual records retain replaced forecasts. All categories require explicit coverage/absence confirmation. Native labelled date/value controls, keyboard operation, error summaries, status announcements and responsive layout support desktop and mobile use.
+
+A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
+
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. M1 is not complete until #12 independently verifies the release. See [calculator usage and checks](../README.md#using-the-m1-calculator).

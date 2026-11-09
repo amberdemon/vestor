@@ -1,6 +1,6 @@
 # Vestor — Functional and Financial Rules Specification
 
-**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, M1.8 other-income domain, and M1.9 combined ANI engine implemented
+**Status:** M1.2 app scaffold, M1.3 tax-year and dated GBP primitives, M1.4 salary and bonus domain, M1.5 pension and Gift Aid domain, M1.6 taxable benefits domain, M1.7 manual GBP RSU income domain, M1.8 other-income domain, and M1.9 combined ANI engine and M1.10 local calculator/API implemented
 **Initial jurisdiction:** UK resident employee; English / Northern Irish non-savings income tax bands unless configured otherwise  
 **Initial tax year:** 2026/27 (6 April 2026–5 April 2027)  
 **Document owner:** product / engineering; review financial rules before code merges  
@@ -212,3 +212,11 @@ These are reference entry points, **not** confirmation that every described edge
 The waterfall reports salary and bonus after payroll reductions, gross RSUs, taxable benefits, other taxable income, qualifying gross pension at the net-income step, then gross Gift Aid and relief-at-source deductions at the ANI step. Already included payroll components contribute once. Source IDs must be unique across categories; component references are links to the original evidence. The remaining standard Personal Allowance is rounded up to whole pounds from **unrounded ANI**. Signed headroom is optional target minus ANI; it is not a pension recommendation.
 
 Results use exact rational amounts and a deterministic `to_wire()` representation containing exact numerator/denominator strings and half-up GBP displays. The `rounding_discrepancy_gbp` field is displayed ANI minus the sum of independently rounded signed waterfall rows; a nonzero difference must be disclosed by consumers. It is informational and does not change the financial result status. Incomplete/unsupported results suppress ANI, allowance and headroom while retaining known component evidence. No full income-tax, NI, CGT, cash or optimisation result is provided. See the [financial contract](M1_FINANCIAL_CONTRACT.md#m19-combined-ani-domain).
+
+## Implemented M1.10 local calculator
+
+The React calculator now exposes repeatable M1 record forms for effective-dated salary, dated payroll/component reconciliation, bonus, salary-sacrifice/net-pay reductions, personal pensions and Gift Aid, benefits/renewals, manual GBP RSU vest income and supported other income. Actual/forecast changes preserve source identity; separately linked actual records retain replaced forecasts. All categories require explicit coverage/absence confirmation. Native labelled date/value controls, keyboard operation, error summaries, status announcements and responsive layout support desktop and mobile use.
+
+A thin strict JSON API reconstructs the existing domain inputs and calls `calculate_ani`; React performs no financial arithmetic. GBP/percentage inputs remain decimal strings, date-only values retain their dates and booleans are never coerced. Results preserve domain status, source-linked expandable waterfall, dated evidence, rule version, unrounded calculation/rounding disclosures, target headroom, £100,000 threshold and standard Personal Allowance. Material unknown/unsupported cases show warnings without final numbers. Input and failed-request values are not logged or echoed in errors.
+
+Inputs are **not saved — data lost on refresh**. Editing clears stale results; service failure preserves entries. No persistence, tax/NI bill, FX, CGT or pension optimisation is added. Automated route, input/label and real-browser desktop/mobile tests cover the supported integration. M1 is not complete until #12 independently verifies the release. See [calculator usage and checks](../README.md#using-the-m1-calculator).
