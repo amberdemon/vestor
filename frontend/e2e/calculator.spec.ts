@@ -285,3 +285,39 @@ test("unsupported scope and unknown benefits never display confident totals", as
     }),
   ).toBeVisible();
 });
+
+test("out-of-range year and source-ID semantic errors have accessible working targets", async ({
+  page,
+}) => {
+  const salary = await base(page);
+  await set(page, "start_year", "10000");
+  await page
+    .getByRole("button", { name: "Calculate ANI", exact: true })
+    .click();
+  const year = page.getByLabel("Tax year starting year");
+  await expect(year).toHaveAttribute("aria-invalid", "true");
+  await page.locator('[role=alert] a[href="#inputs.start_year"]').click();
+  await expect(year).toBeFocused();
+  await set(page, "start_year", "2026");
+  await add(page, "payroll_reductions", 0, {
+    pay_id: salary,
+    source_status: "forecast",
+    source_note: "Synthetic excess election",
+    qualifies: "true",
+    fixed_gbp: "90000",
+    base: "full_pay",
+    elected_on: "2026-04-01",
+    effective_on: "2026-04-06",
+    through: "2027-04-05",
+  });
+  await page
+    .getByRole("button", { name: "Calculate ANI", exact: true })
+    .click();
+  const source = page.getByLabel("Reduction ID", { exact: true });
+  await expect(source).toHaveAttribute("aria-invalid", "true");
+  await page
+    .locator('[role=alert] a[href="#inputs.payroll_reductions.0.reduction_id"]')
+    .click();
+  await expect(source).toBeFocused();
+  await expect(page.getByTestId("ani")).toHaveCount(0);
+});

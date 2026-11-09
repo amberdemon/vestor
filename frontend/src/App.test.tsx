@@ -166,3 +166,61 @@ test("uses exact backend amounts and clears stale results on edit", async () => 
   await fill("inputs.target_gbp", "1");
   expect(document.querySelector("[data-testid=ani]")).toBeNull();
 });
+
+test("server year error marks the control and links its summary to keyboard focus", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValue(
+        Response.json(
+          {
+            errors: [
+              {
+                field: "inputs.start_year",
+                message: "Enter a valid four-digit tax-year start year.",
+              },
+            ],
+          },
+          { status: 422 },
+        ),
+      ),
+  );
+  await mount();
+  await fill("inputs.start_year", "10000");
+  await click("Calculate ANI");
+  expect(input("inputs.start_year").getAttribute("aria-invalid")).toBe("true");
+  const link = document.querySelector("[role=alert] a") as HTMLAnchorElement;
+  expect(link.getAttribute("href")).toBe("#inputs.start_year");
+  link.click();
+  expect(document.activeElement).toBe(input("inputs.start_year"));
+});
+
+test.each(["inputs.salary_periods", "unassigned-semantic-field"])(
+  "semantic error %s has a real target or is unlinked general text",
+  async (field) => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json(
+            { errors: [{ field, message: "Resolve conflicting records." }] },
+            { status: 422 },
+          ),
+        ),
+    );
+    await mount();
+    await click("Calculate ANI");
+    expect(document.querySelector("[role=alert]")?.textContent).toContain(
+      "Resolve conflicting records.",
+    );
+    for (const link of document.querySelectorAll<HTMLAnchorElement>(
+      "[role=alert] a",
+    ))
+      expect(document.getElementById(link.hash.slice(1))).not.toBeNull();
+    if (field === "inputs.salary_periods")
+      expect(document.querySelector("[role=alert] a")).not.toBeNull();
+    else expect(document.querySelector("[role=alert] a")).toBeNull();
+  },
+);

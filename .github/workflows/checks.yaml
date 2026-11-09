@@ -32,7 +32,7 @@ jobs:
       - name: Browser calculator scenarios (desktop and mobile)
         run: |
           docker run --rm --network host -e CI=1 -v "$PWD/frontend:/app" -w /app node:24.18.0-bookworm-slim \
-            sh -c 'npm ci && npm exec playwright install --with-deps chromium && npm run e2e'
+            sh -c 'npm ci && npm exec -- playwright install --with-deps chromium && npm run e2e'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:

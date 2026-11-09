@@ -80,7 +80,7 @@ function Editor({
         if (field.repeat) {
           const items = (current ?? []) as RecordValue[];
           return (
-            <fieldset key={id}>
+            <fieldset key={id} id={id} tabIndex={-1}>
               <legend>{field.label}</legend>
               {current === null && (
                 <p>
@@ -123,7 +123,7 @@ function Editor({
         }
         if (field.fields)
           return (
-            <fieldset key={id}>
+            <fieldset key={id} id={id} tabIndex={-1}>
               <legend>{field.label}</legend>
               <Editor
                 fields={field.fields}
@@ -232,6 +232,26 @@ function Editor({
       })}
     </>
   );
+}
+function inputTargets(
+  fields: Field[],
+  value: RecordValue,
+  path: string,
+): string[] {
+  return fields.flatMap((field) => {
+    const id = `${path}.${field.key}`,
+      current = value[field.key];
+    return [
+      id,
+      ...(field.repeat
+        ? ((current ?? []) as RecordValue[]).flatMap((row, index) =>
+            inputTargets(field.fields!, row, `${id}.${index}`),
+          )
+        : field.fields
+          ? inputTargets(field.fields, current as RecordValue, id)
+          : []),
+    ];
+  });
 }
 export function validate(
   fields: Field[],
@@ -353,6 +373,15 @@ export function App() {
       setBusy(false);
     }
   }
+  const targets = new Set([
+    ...inputTargets(configuration, inputs, "inputs"),
+    ...sections.flatMap((section) => [
+      `inputs.${section.key}`,
+      ...(inputs[section.key] as RecordValue[]).flatMap((row, index) =>
+        inputTargets(section.fields, row, `inputs.${section.key}.${index}`),
+      ),
+    ]),
+  ]);
   return (
     <main>
       <header>
@@ -377,12 +406,16 @@ export function App() {
             <ul>
               {errors.map((e, i) => (
                 <li key={i}>
-                  <a
-                    href={`#${e.field}`}
-                    onClick={() => document.getElementById(e.field)?.focus()}
-                  >
-                    {e.field.replace("inputs.", "")}: {e.message}
-                  </a>
+                  {targets.has(e.field) ? (
+                    <a
+                      href={`#${e.field}`}
+                      onClick={() => document.getElementById(e.field)?.focus()}
+                    >
+                      {e.field.replace("inputs.", "")}: {e.message}
+                    </a>
+                  ) : (
+                    <span>{e.message}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -406,7 +439,11 @@ export function App() {
         {sections.map((section, index) => {
           const rows = inputs[section.key] as RecordValue[];
           return (
-            <section key={section.key}>
+            <section
+              key={section.key}
+              id={`inputs.${section.key}`}
+              tabIndex={-1}
+            >
               <h2>
                 {index + 2}. {section.title}
               </h2>
@@ -487,8 +524,12 @@ export function App() {
             Your calculation
           </h2>
           <p>
-            Selected tax year starting {String(inputs.start_year ?? "unknown")} · Verified rule period:{" "}
-            {result.rules ? "6 April 2026–5 April 2027" : "Unavailable for selection"} · Rule version:{" "}
+            Selected tax year starting {String(inputs.start_year ?? "unknown")}{" "}
+            · Verified rule period:{" "}
+            {result.rules
+              ? "6 April 2026–5 April 2027"
+              : "Unavailable for selection"}{" "}
+            · Rule version:{" "}
             {String(result.rules?.version ?? "No supported rules selected")}
           </p>
           {result.warnings.length > 0 && (

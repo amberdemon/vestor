@@ -45,7 +45,7 @@ To run the same browser scenarios against a running Compose service:
 ```sh
 cd frontend
 npm ci
-npm exec playwright install chromium
+npm exec -- playwright install chromium
 npm run e2e
 ```
 
@@ -87,3 +87,5 @@ Add payroll pension reductions (salary sacrifice or net pay), personal pensions/
 Results show status, ANI, signed target headroom, standard Personal Allowance, source-linked waterfall and expandable rule/date/rounding evidence. Unsupported or incomplete inputs suppress final amounts. Only 2026/27 England/Northern Ireland standard full-year UK-resident cases are supported. Annual salary and supported annual benefits use an inclusive calendar-day forecast, not payroll timing. Externally determined taxable values, eligibility and tax-year profit allocation remain the user's evidence; no insurance valuation, annual allowance check, tax bill, NI, CGT, FX conversion, spendable cash or optimisation is provided. See the [M1 financial contract](docs/M1_FINANCIAL_CONTRACT.md).
 
 `POST /api/calculate` accepts the immutable `AniInputs` shape: money/percentages are exact decimal strings or explicit null, dates are ISO date-only strings, confirmations are strict booleans or null where permitted. Unknown keys and coercions are rejected with field errors without echoing rejected input. It calls the existing `calculate_ani` once and returns its exact wire result. No financial calculations run in React.
+
+Browser CI uses Node 24.18.0 on Debian Bookworm and the package-pinned Playwright 1.56.1 Chromium build. The `npm exec --` separator passes `--with-deps` to Playwright, so its required Linux libraries are installed before launching the pinned browser. Calculation errors map to labelled form controls or sections; unassigned errors remain accessible general text without dead links or rejected source identities.

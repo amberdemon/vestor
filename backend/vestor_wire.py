@@ -54,3 +54,36 @@ def _decode(kind: Any, raw: object, path: str) -> Any:
     if kind in (str, bool, int) and type(raw) is kind:
         return raw
     raise InputError(path, "Use the required text, integer or boolean type; coercion is not supported.")
+
+
+def error_field(field: str, payload: dict[str, Any]) -> str:
+    """Translate domain keys/source identities into wire paths, never echo IDs.
+
+    Some domain problems identify a whole collection or an evidence identity
+    rather than a field path. Unassigned problems remain general form errors.
+    """
+    def visit(node: object, path: str) -> list[tuple[str, str, object]]:
+        found: list[tuple[str, str, object]] = []
+        if isinstance(node, dict):
+            for key, value in node.items():
+                child = f"{path}.{key}"
+                found.append((child, key, value))
+                found.extend(visit(value, child))
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                found.extend(visit(value, f"{path}.{index}"))
+        return found
+
+    paths = visit(payload, "inputs")
+    if any(path == field for path, _, _ in paths):
+        return field
+    if field in payload:
+        return f"inputs.{field}"
+    identities = {"event_id", "period_id", "reduction_id", "benefit_id", "pay_id", "component_id"}
+    for path, key, value in paths:
+        if key in identities and value == field:
+            return path
+    for path, key, _ in paths:
+        if key == field:
+            return path
+    return "inputs"

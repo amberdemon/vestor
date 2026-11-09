@@ -112,3 +112,30 @@ def test_all_nested_domain_records_cross_the_api_without_reinterpretation():
     assert response.status_code == 200
     assert response.json() == calculate_ani(raw).to_wire()
     assert response.json()["ani_gbp"]["display_gbp"] == "89000.00"
+
+
+def test_domain_configuration_error_maps_to_control_path():
+    payload = wire(inputs())
+    payload['start_year'] = 10000
+    with TestClient(app) as client:
+        response = client.post('/api/calculate', json=payload)
+    assert response.status_code == 422
+    assert response.json()['errors'][0]['field'] == 'inputs.start_year'
+
+
+def test_semantic_source_error_maps_to_control_without_echoing_identity():
+    raw = inputs(payroll_reductions=(sacrifice('PRIVATE-SOURCE-IDENTITY', 'salary', amount='90000'),))
+    with TestClient(app) as client:
+        response = client.post('/api/calculate', json=wire(raw))
+    assert response.status_code == 422
+    assert response.json()['errors'][0]['field'] == 'inputs.payroll_reductions.0.reduction_id'
+    assert 'PRIVATE-SOURCE-IDENTITY' not in response.text
+
+
+def test_semantic_collection_error_maps_to_section():
+    payload = wire(inputs())
+    payload['salary_periods'].append({**payload['salary_periods'][0], 'period_id': 'second'})
+    with TestClient(app) as client:
+        response = client.post('/api/calculate', json=payload)
+    assert response.status_code == 422
+    assert any(error['field'] == 'inputs.salary_periods' for error in response.json()['errors'])
