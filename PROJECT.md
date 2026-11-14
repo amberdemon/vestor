@@ -59,6 +59,8 @@ Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independen
 - [M1 detailed milestone specification](docs/M1_COMPENSATION_ANI.md) · [M1 live issue tracker](https://github.com/amberdemon/vestor/issues/1).
 
 ### M2 — RSU, FX and CGT
+
+The [M2 financial contract](docs/M2_RSU_FX_CGT.md) defines the planned scope, verified sources and worked examples.
 - Actual and forecast vest schedules, number of shares and vest FMV, original payroll taxable GBP amount.
 - Employee share events: vest/acquisition, same-day sell-to-cover disposal and voluntary share sales.
 - USD/GBP conversion by event date; separate vest-income, acquisition cost, disposal proceeds and fee basis.
