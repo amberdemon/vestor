@@ -194,6 +194,8 @@ The [M1 release verification report](M1_RELEASE_VERIFICATION.md) maps acceptance
 
 ## 9. Implementation decisions
 
+The [M2 financial contract](M2_RSU_FX_CGT.md) defines planned RSU valuation, GBP conversion, share matching, qualified CGT and settlement evidence. Its worked cases expand F4–F6 for M2 implementation.
+
 The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. The [M1.2 architecture decision](M1_APP_ARCHITECTURE.md) records the shipped local shell, health endpoint and test pipeline. The [M1.3 domain primitives](M1_COMPENSATION_ANI.md#implemented-m13-primitives) implement inclusive year membership, scope selection and dated GBP event evidence. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
 
 ## 10. Authoritative references for implementation review
