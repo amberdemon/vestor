@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from fractions import Fraction
 from typing import Literal
 
 
@@ -82,3 +83,14 @@ def validate_gbp(amount: Decimal | None, *, field: str = "amount_gbp") -> None:
         or int(amount.as_tuple().exponent) < -2
     ):
         raise InputError(field, "Use a finite nonnegative GBP Decimal with up to two fractional digits.")
+
+
+def rounded_pennies(value: Fraction) -> int:
+    magnitude = abs(value) * 100
+    rounded = (2 * magnitude.numerator + magnitude.denominator) // (2 * magnitude.denominator)
+    return -rounded if value < 0 else rounded
+
+
+def display_gbp(value: Fraction) -> str:
+    pennies = rounded_pennies(value)
+    return f"{'-' if pennies < 0 else ''}{abs(pennies) // 100}.{abs(pennies) % 100:02d}"

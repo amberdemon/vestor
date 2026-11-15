@@ -12,7 +12,7 @@ from .employment import PayEvent, SalaryPayment, SalaryPeriod, calculate_employm
 from .events import ResultStatus
 from .other_income import OtherIncome, OtherIncomeResult, calculate_other_income
 from .pensions import Adjustment, PayrollReduction, PensionResult, calculate_pensions
-from .primitives import InputError, Problem, validate_gbp
+from .primitives import InputError, Problem, display_gbp as display_gbp, rounded_pennies, validate_gbp
 from .rsu import RsuEvent, RsuResult, calculate_rsu_income
 from .tax_year import TaxRules, select_tax_rules
 
@@ -85,17 +85,6 @@ class AniResult:
 
     def to_wire(self) -> dict[str, Any]:
         return cast(dict[str, Any], _wire(self))
-
-
-def _pennies(value: Fraction) -> int:
-    magnitude = abs(value) * 100
-    rounded = (2 * magnitude.numerator + magnitude.denominator) // (2 * magnitude.denominator)
-    return -rounded if value < 0 else rounded
-
-
-def display_gbp(value: Fraction) -> str:
-    pennies = _pennies(value)
-    return f"{'-' if pennies < 0 else ''}{abs(pennies) // 100}.{abs(pennies) % 100:02d}"
 
 
 def _wire(value: Any) -> Any:
@@ -233,6 +222,6 @@ def calculate_ani(raw: AniInputs) -> AniResult:
             - max(Fraction(0), ani - Fraction(rules.taper_threshold_gbp)) * Fraction(rules.taper_reduction_per_pound))
         allowance = Fraction(-(-remaining.numerator // remaining.denominator))
         headroom = None if raw.target_gbp is None else Fraction(raw.target_gbp) - ani
-        discrepancy = Fraction(_pennies(ani) - sum(_pennies(amount) for amount in known), 100)
+        discrepancy = Fraction(rounded_pennies(ani) - sum(rounded_pennies(amount) for amount in known), 100)
     return AniResult(status, raw, rules, tuple(rows), pensions, benefits, rsu, other,
                      taxable, net, ani, allowance, headroom, discrepancy, warnings)
