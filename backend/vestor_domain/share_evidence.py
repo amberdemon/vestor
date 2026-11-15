@@ -251,6 +251,18 @@ def _compatible(actual: ShareRecord, forecast: ShareRecord) -> bool:
     return type(actual) is type(forecast)
 
 
+def _parent_ids(record: ShareRecord) -> tuple[str | None, ...]:
+    if isinstance(record, Vest):
+        return (record.grant_id,)
+    if isinstance(record, Sale):
+        return (record.vest_id,)
+    if isinstance(record, Fee):
+        return (record.transaction_id,)
+    if isinstance(record, WithholdingLink):
+        return (record.vest_id, record.sale_id)
+    return ()
+
+
 def _links(active: dict[str, ShareRecord]) -> list[Problem]:
     warnings = []
     cover_quantities: dict[str, Fraction] = defaultdict(Fraction)
@@ -264,9 +276,9 @@ def _links(active: dict[str, ShareRecord]) -> list[Problem]:
         elif isinstance(record, Sale) and record.vest_id is not None:
             vest = active.get(record.vest_id)
             if not isinstance(vest, Vest) or vest.security.identity != record.security.identity or (
-                record.trade_on is not None and vest.acquired_on is not None and record.trade_on != vest.acquired_on
+                record.trade_on is not None and vest.acquired_on is not None and record.trade_on < vest.acquired_on
             ):
-                warnings.append(Problem("input_error", "vest_id", "Link an active acquisition with the same identity and trade date."))
+                warnings.append(Problem("input_error", "vest_id", "Link an active acquisition for the same share identity on or before the cover trade."))
             elif vest.quantity is not None and record.quantity is not None:
                 cover_quantities[record.vest_id] += Fraction(record.quantity)
                 if cover_quantities[record.vest_id] > Fraction(vest.quantity):
@@ -361,6 +373,13 @@ def validate_share_evidence(records: Iterable[ShareRecord]) -> ShareEvidence:
     active = {key: record for key, record in by_id.items() if key not in replacements}
     events = tuple(active.values())
     warnings = _links(active)
+    for forecast_id, actual_id in replacements.items():
+        expected = tuple(
+            replacements.get(parent_id, parent_id) if parent_id is not None else None
+            for parent_id in _parent_ids(by_id[forecast_id])
+        )
+        if _parent_ids(by_id[actual_id]) != expected:
+            warnings.append(Problem("input_error", "replaces_forecast_id", "A replacement must link to the same event parents."))
     for key, record in active.items():
         if record.source.source_status == "unknown":
             warnings.append(Problem("incomplete", key, "Confirm the record source status."))

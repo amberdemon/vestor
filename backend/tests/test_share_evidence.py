@@ -98,7 +98,7 @@ def test_actual_replaces_forecast_with_different_date_and_keeps_original():
     ((OPENING, GRANT, replace(VEST, grant_id="missing")), "grant_id"),
     ((OPENING, GRANT, VEST, replace(SALE, security=replace(SHARE, share_class="B"))), "vest_id"),
     ((OPENING, GRANT, VEST, replace(SALE, security=replace(SHARE, owner_id="different"))), "vest_id"),
-    ((OPENING, GRANT, VEST, replace(SALE, trade_on=day("2026-04-07"))), "vest_id"),
+    ((OPENING, GRANT, VEST, replace(SALE, trade_on=day("2026-04-05"))), "vest_id"),
     ((OPENING, GRANT, VEST, SALE, WithholdingLink(source("withheld"), "vest", "grant", None)), "sale_id"),
     ((OPENING, Fee(source("fee"), "missing", None, Decimal("0"), "GBP")), "transaction_id"),
 ])
@@ -147,3 +147,29 @@ def test_multiple_cover_sales_cannot_claim_more_shares_than_the_linked_vest():
     result = validate_share_evidence((opening, GRANT, VEST, SALE, second_cover))
     assert result.status == "input_error"
     assert result.warnings[0].field == "quantity"
+
+
+def test_cover_trade_can_follow_acquisition_across_tax_years():
+    opening = replace(OPENING, as_of=day("2027-04-04"), coverage_through=day("2027-05-06"))
+    vest = replace(VEST, vested_on=day("2027-04-05"), acquired_on=day("2027-04-05"),
+                   charge_on=day("2027-04-05"))
+    sale = replace(SALE, trade_on=day("2027-04-06"), settlement_on=day("2027-04-08"))
+    assert validate_share_evidence((opening, GRANT, vest, sale)).status == "confirmed"
+
+
+def test_fee_cannot_replace_forecast_from_unrelated_sale():
+    prior = Fee(source("forecast-fee", "forecast"), "sale", SALE.trade_on, Decimal("1"), "GBP")
+    unrelated = replace(SALE, source=source("other-sale"), purpose="voluntary", vest_id=None)
+    actual = replace(prior, source=source("actual-fee", replaces="forecast-fee"), transaction_id="other-sale")
+    result = validate_share_evidence((OPENING, GRANT, VEST, SALE, unrelated, prior, actual))
+    assert result.status == "input_error"
+    assert "replaces_forecast_id" in {warning.field for warning in result.warnings}
+
+
+def test_cover_replacement_can_link_the_actual_vest_that_replaced_its_forecast():
+    prior_vest = replace(VEST, source=source("forecast-vest", "forecast"))
+    actual_vest = replace(VEST, source=source("vest", replaces="forecast-vest"))
+    prior_sale = replace(SALE, source=source("forecast-sale", "forecast"), vest_id="forecast-vest")
+    actual_sale = replace(SALE, source=source("sale", replaces="forecast-sale"))
+    result = validate_share_evidence((OPENING, GRANT, prior_vest, actual_vest, prior_sale, actual_sale))
+    assert result.status == "confirmed"
