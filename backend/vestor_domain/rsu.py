@@ -45,6 +45,19 @@ class RsuEvent:
             parse_percent(str(percent))
 
 
+    @property
+    def taxable_gbp(self) -> Fraction | None:
+        return None if self.money.amount_gbp is None else Fraction(self.money.amount_gbp)
+
+    @property
+    def valuation_estimated(self) -> bool:
+        return False
+
+    @property
+    def valuation_warnings(self) -> tuple[Problem, ...]:
+        return ()
+
+
 @dataclass(frozen=True)
 class RsuLine:
     source: RsuEvent
@@ -150,6 +163,8 @@ def calculate_rsu_income(
         disposition: Disposition | Literal["unresolved"] = line.disposition
         amount = None
         explanation = "Outside the selected tax year."
+        if disposition == "included" or (disposition != "replaced" and not record.charge_date_confirmed):
+            warnings.extend(record.valuation_warnings)
         if disposition == "replaced":
             explanation = "Superseded by explicitly linked actual GBP evidence."
         elif record.supported_award is False and (disposition == "included" or not record.charge_date_confirmed):
@@ -164,7 +179,7 @@ def calculate_rsu_income(
                 explanation = "Confirm that this is an ordinary supported RSU vest award."
                 warnings.append(Problem("incomplete", line.event_id, explanation))
             elif record.money.amount_gbp is not None and record.money.source_status != "unknown":
-                amount = Fraction(record.money.amount_gbp)
+                amount = record.taxable_gbp
                 explanation = "Gross taxable GBP employment income; sold-to-cover information does not reduce it."
             else:
                 explanation = "Confirm gross taxable GBP vest income and its source."
@@ -172,6 +187,10 @@ def calculate_rsu_income(
 
     _reconcile_payroll(lines, employment, warnings)
     status: ResultStatus = resolved.status
+    if status == "confirmed" and any(
+        line.amount_gbp is not None and line.source.valuation_estimated for line in lines
+    ):
+        status = "estimated"
     priorities: tuple[ProblemStatus, ...] = ("incomplete", "unsupported", "input_error")
     for candidate in priorities:
         if any(warning.status == candidate for warning in warnings):
