@@ -82,15 +82,16 @@ class VestValuation:
 
 def _scope(raw: VestValuationInput) -> Problem | None:
     vest, grant = raw.vest, raw.grant
-    dates = (vest.vested_on, vest.acquired_on, vest.charge_on)
+    dates = {on for on in (vest.vested_on, vest.acquired_on, vest.charge_on) if on is not None}
     if (
         vest.uk_resident is False or vest.security.capacity != "personal"
         or False in (vest.security.ordinary_listed, grant.security.ordinary_listed)
-        or grant.treatment == "unsupported" or (None not in dates and len(set(dates)) != 1)
+        or grant.treatment == "unsupported" or len(dates) > 1
     ):
         return Problem("unsupported", vest.source.event_id, "Use an ordinary UK vest with a simultaneous charge and acquisition.")
     if (
-        None in dates or None in (vest.uk_resident, vest.security.ordinary_listed, grant.security.ordinary_listed,
+        vest.vested_on is None or vest.charge_on is None
+        or None in (vest.uk_resident, vest.security.ordinary_listed, grant.security.ordinary_listed,
                                   grant.treatment, grant.awarded_on)
         or "unknown" in (vest.source.source_status, grant.source.source_status)
     ):
@@ -123,11 +124,11 @@ def value_vest(raw: VestValuationInput, rates: FxRates) -> VestValuation:
     employment_warnings = income_fx.warnings
     if common is not None:
         employment_status, employment, employment_warnings = common.status, None, (common,)
-    elif raw.confirmed_payroll_gbp is not None:
-        employment_status, employment = "confirmed", Fraction(raw.confirmed_payroll_gbp)
-        employment_warnings = () if gross_problem is None else (gross_problem,)
     elif gross_problem is not None:
         employment_status, employment, employment_warnings = gross_problem.status, None, (gross_problem,)
+    elif raw.confirmed_payroll_gbp is not None:
+        employment_status, employment = "confirmed", Fraction(raw.confirmed_payroll_gbp)
+        employment_warnings = ()
     elif employment is not None:
         employment_status = "estimated"
 
@@ -141,8 +142,8 @@ def _basis(
 ) -> tuple[ResultStatus, Fraction | None, tuple[Problem, ...]]:
     if common is not None:
         return common.status, None, (common,)
-    if raw.basis_method is None or raw.vest.quantity is None:
-        return "incomplete", None, (Problem("incomplete", "basis_method", "Confirm the acquisition method and quantity."),)
+    if raw.basis_method is None or raw.vest.quantity is None or raw.vest.acquired_on is None:
+        return "incomplete", None, (Problem("incomplete", "basis_method", "Confirm the acquisition method, date and quantity."),)
     if raw.confirmed_basis_gbp is not None:
         return "confirmed", Fraction(raw.confirmed_basis_gbp), ()
     if gross_problem is not None:

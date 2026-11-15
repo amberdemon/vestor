@@ -137,3 +137,33 @@ def test_missing_charge_date_blocks_ani_even_when_reference_date_is_outside_year
     raw = replace(raw, vest=replace(raw.vest, charge_on=None))
     result = calculate_ani_with_vests(inputs(), (value_vest(raw, FxRates(())),))
     assert result.ani_gbp is None and result.status == "incomplete"
+
+
+def test_inconsistent_usd_blocks_ani_even_when_confirmed_payroll_is_supplied():
+    raw = evidence(gross_usd=Decimal("999.99"), confirmed_payroll_gbp=Decimal("820"),
+                   basis_method="market_value", confirmed_basis_gbp=Decimal("810"))
+    value = value_vest(raw, rates())
+    assert value.source.confirmed_payroll_gbp == 820
+    assert value.basis_gbp == 810
+    result = calculate_ani_with_vests(inputs(), (value,))
+    assert result.ani_gbp is None and result.status == "input_error"
+    assert any(warning.field == "gross_usd" for warning in result.warnings)
+
+
+def test_explicit_canonical_manual_forecast_keeps_its_entered_pennies():
+    raw = evidence(manual_vest_id="manual")
+    raw = replace(raw, vest=replace(raw.vest, source=source("m2-vest", "forecast"),
+                                  quantity=Decimal("1"), fmv_usd_per_share=Decimal("0.01")))
+    value = value_vest(raw, rates(income="0.50"))
+    manual = manual_vest("manual", "0.01", ON.isoformat(), "forecast")
+    assert value.employment_gbp == Fraction(1, 200)
+    assert calculate_ani_with_vests(inputs(rsu_events=(manual,)), (value,)).ani_gbp == 80000 + Fraction(1, 100)
+
+
+def test_missing_acquisition_date_leaves_known_payroll_charge_intact():
+    raw = evidence(confirmed_payroll_gbp=Decimal("820"), basis_method="market_value",
+                   confirmed_basis_gbp=Decimal("810"))
+    value = value_vest(replace(raw, vest=replace(raw.vest, acquired_on=None)), rates())
+    assert value.employment_gbp == 820 and value.employment_status == "confirmed"
+    assert value.basis_gbp is None and value.basis_status == "incomplete"
+    assert calculate_ani_with_vests(inputs(), (value,)).ani_gbp == 80820
