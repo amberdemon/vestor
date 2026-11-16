@@ -165,3 +165,38 @@ def test_dated_usd_purchase_and_expense_become_exact_acquisition_basis():
     result = response.json()
     assert result["acquisitions"][0]["basis"]["gbp"]["display_gbp"] == "808.00"
     assert result["share_gains"]["gains"][0]["gain_gbp"]["display_gbp"] == "82.00"
+
+
+def test_wire_preserves_payroll_difference_and_fx_rounding_disclosure():
+    payload = model()
+    payload["vests"][0]["confirmed_payroll_gbp"] = "820"
+    payload["vests"][0]["vest"]["income_rate_id"] = "income-rate"
+    payload["rates"].append({"source": source("income-rate"), "on": "2026-05-10",
+                             "purpose": "vest_income", "gbp_per_usd": "0.80", "pair": "GBP/USD"})
+    with TestClient(app) as client:
+        response = client.post("/api/v2/calculate", json=payload)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["vests"][0]["payroll_difference_gbp"]["display_gbp"] == "20.00"
+    assert result["vests"][0]["acquisition_quantity"] == "100"
+    fx = result["ledger"]["disposals"][0]["proceeds_fx"]
+    assert fx["rounding_discrepancy_gbp"]["numerator"].startswith("-")
+
+
+@pytest.mark.parametrize(("acquired_on", "status"), [("2026-05-10", "unknown"), (None, "actual")])
+def test_gbp_purchase_requires_known_source_and_acquisition_date(acquired_on, status):
+    payload = model()
+    payload["vests"] = []
+    payload["grants"] = []
+    payload["purchases"] = [{
+        "source": {**source("purchase"), "source_status": status}, "security": SECURITY,
+        "acquired_on": acquired_on, "quantity": "100", "gross_amount": "800", "currency": "GBP",
+        "uk_resident": True, "fees_confirmed": True,
+    }]
+    with TestClient(app) as client:
+        response = client.post("/api/v2/calculate", json=payload)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["acquisitions"][0]["basis"] is None
+    assert result["acquisitions"][0]["warnings"]
+    assert result["share_gains"]["gains"][0]["gain_gbp"] is None

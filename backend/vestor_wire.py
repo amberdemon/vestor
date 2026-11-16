@@ -11,6 +11,8 @@ from vestor_domain.ani import AniInputs, AniResult
 from vestor_domain.m2 import M2Inputs, M2Result
 from vestor_domain.primitives import InputError, display_gbp, parse_date, parse_gbp, parse_percent
 from vestor_domain.settlement import PayrollSettlement
+from vestor_domain.fx import FxConversion
+from vestor_domain.vest_valuation import VestValuation
 
 
 def decode_input(raw: object) -> AniInputs:
@@ -129,6 +131,11 @@ def _encode_m2(value: Any, field: str = "") -> Any:
         return value.to_wire()
     if is_dataclass(value) and not isinstance(value, type):
         encoded = {item.name: _encode_m2(getattr(value, item.name), item.name) for item in fields(value)}
+        if isinstance(value, VestValuation):
+            encoded["acquisition_quantity"] = _encode_m2(value.acquisition_quantity)
+            encoded["payroll_difference_gbp"] = _encode_m2(value.payroll_difference_gbp, "payroll_difference_gbp")
+        if isinstance(value, FxConversion):
+            encoded["rounding_discrepancy_gbp"] = _encode_m2(value.rounding_discrepancy_gbp, "rounding_discrepancy_gbp")
         if isinstance(value, PayrollSettlement):
             for name in ("withheld_gbp", "repaid_gbp", "reported_owed_gbp", "reconciliation_difference_gbp"):
                 encoded[name] = _encode_m2(getattr(value, name), name)

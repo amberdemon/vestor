@@ -105,6 +105,12 @@ def _acquisition(
     cost = None
     estimated = record.source.source_status == "forecast"
     warnings: list[Problem] = []
+    if record.acquired_on is None or record.quantity is None or record.source.source_status == "unknown":
+        warnings.append(Problem("incomplete", key, "Confirm the acquisition date, quantity and source."))
+    if record.security.capacity != "personal" or record.security.ordinary_listed is False or record.uk_resident is False:
+        warnings.append(Problem("unsupported", key, "Use only supported ordinary share acquisitions."))
+    elif record.security.ordinary_listed is None or record.uk_resident is None:
+        warnings.append(Problem("incomplete", key, "Confirm ordinary listed shares and UK residence."))
     if isinstance(record, Purchase):
         if record.currency == "GBP" and record.gross_amount is not None:
             cost = Fraction(record.gross_amount)
