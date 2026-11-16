@@ -62,7 +62,7 @@ Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independen
 
 The [M2 financial contract](docs/M2_RSU_FX_CGT.md) defines the planned scope, verified sources and worked examples.
 
-Implemented domain foundations include immutable share evidence, exact per-event manual USD-to-GBP conversion, a vest valuation bridge into M1 ANI, and a disposal ledger for trade proceeds and fees. The user-facing M2 ledger and CGT estimate remain planned.
+Implemented domain foundations include immutable share evidence, exact per-event manual USD-to-GBP conversion, a vest valuation bridge into M1 ANI, a disposal ledger for trade proceeds and fees, and same-day and following-30-day share identification. The user-facing M2 ledger and CGT estimate remain planned.
 - Actual and forecast vest schedules, number of shares and vest FMV, original payroll taxable GBP amount.
 - Employee share events: vest/acquisition, same-day sell-to-cover disposal and voluntary share sales.
 - USD/GBP conversion by event date; separate vest-income, acquisition cost, disposal proceeds and fee basis.
