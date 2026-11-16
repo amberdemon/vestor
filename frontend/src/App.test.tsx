@@ -224,3 +224,24 @@ test.each(["inputs.salary_periods", "unassigned-semantic-field"])(
     else expect(document.querySelector("[role=alert] a")).toBeNull();
   },
 );
+
+test("M2 ledger fields use stable IDs and submit exact strings with the existing ANI inputs", async () => {
+  const fetch = vi.fn().mockResolvedValue(Response.json({
+    errors: [{ field: "inputs.sales.0.price_per_share", message: "Check the trade price." }],
+  }, { status: 422 }));
+  vi.stubGlobal("fetch", fetch);
+  await mount();
+  await act(async () => input("include-m2").click());
+  await click("Add sale");
+  const saleId = input("inputs.sales.0.source.event_id").value;
+  expect(saleId).toMatch(/^sales-/);
+  await fill("inputs.sales.0.price_per_share", "10.123456789");
+  await click("Calculate ANI and shares");
+  expect(fetch.mock.calls[0][0]).toBe("/api/v2/calculate");
+  const payload = JSON.parse(fetch.mock.calls[0][1].body);
+  expect(payload.sales[0].price_per_share).toBe("10.123456789");
+  expect(payload.sales[0].source.event_id).toBe(saleId);
+  expect(payload.ani.start_year).toBe(2026);
+  expect(input("inputs.sales.0.price_per_share").getAttribute("aria-invalid")).toBe("true");
+  expect(document.querySelector("[role=alert] a")?.getAttribute("href")).toBe("#inputs.sales.0.price_per_share");
+});

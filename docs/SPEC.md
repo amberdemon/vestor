@@ -286,3 +286,9 @@ Cash settlement shows source broker balances, trade values, transfer execution a
 The response returns evidence and independent calculation statuses for ANI, vest valuation, disposal ledger, acquisitions, share gains, annual CGT and settlements. Exact values use decimal strings or numerator and denominator strings. Computed GBP rationals also include a half-up penny display. Exact rollups can differ from the sum of rounded displays. Acquisition expenses only enter basis with documented coverage and dated support. A supplied confirmed GBP vest basis is the total allowable basis, including any already evidenced expenses.
 
 Invalid input responses use field paths with no submitted values or source notes. Incomplete and unsupported results remain available with warnings and applicable known evidence. The local route uses no persistence or external calls.
+
+## Implemented M2.11 share ledger interface
+
+Enable **Include share ledger and CGT** to enter linked share records and local FX evidence alongside ordinary ANI inputs. Sharing the issuer, class, owner and capacity identifies the holding. Source IDs link grant, vest, cover sale, fee, remittance and payroll evidence. Use the existing ANI component controls for named payroll inclusion, or explicitly link or replace a manual vest to reconcile it with an M2 vest.
+
+The results show gross RSU income, per-disposal GBP proceeds and basis, priority and Section 104 trace, exact rates, annual CGT evidence, and payroll and broker settlement details. Incomplete annual CGT can coexist with an inspectable disposal gain. The interface uses the API’s displayed GBP values, preserves entered decimals as text and clears stale results after edits. Entries are unsaved and refresh discards them. The local endpoint provides all calculations.

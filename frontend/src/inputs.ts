@@ -4,7 +4,7 @@ export type RecordValue = { [key: string]: Value };
 export type Field = {
   key: string;
   label: string;
-  type?: "money" | "percent" | "date" | "bool" | "tri" | "integer" | "ids";
+  type?: "money" | "decimal" | "percent" | "date" | "bool" | "tri" | "integer" | "ids";
   options?: string[];
   fields?: Field[];
   repeat?: boolean;

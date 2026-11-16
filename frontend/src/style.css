@@ -236,3 +236,15 @@ footer {
     gap: 2px;
   }
 }
+.ledger-warnings {
+  padding-left: 1.4rem;
+  color: #795118;
+  overflow-wrap: anywhere;
+}
+.ledger-total {
+  font-weight: 650;
+  font-size: 1.5rem;
+}
+.results summary {
+  overflow-wrap: anywhere;
+}
