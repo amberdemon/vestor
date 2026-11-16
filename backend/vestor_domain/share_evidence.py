@@ -134,8 +134,11 @@ class Purchase:
     currency: Currency
     rate_id: str | None = None
     uk_resident: bool | None = None
+    fees_confirmed: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.fees_confirmed) is not bool:
+            raise InputError("fees_confirmed", "Confirm whether acquisition expenses are fully recorded.")
         _date(self.acquired_on, "acquired_on")
         _decimal(self.quantity, "quantity", positive=True)
         _decimal(self.gross_amount, "gross_amount")
