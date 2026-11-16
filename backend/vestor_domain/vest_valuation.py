@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
@@ -189,7 +189,9 @@ def _rsu_event(value: VestValuation) -> RsuEvent:
     )
 
 
-def calculate_ani_with_vests(raw: AniInputs, values: Iterable[VestValuation]) -> AniResult:
+def calculate_ani_with_vests(
+    raw: AniInputs, values: Iterable[VestValuation], *, grant_replacements: Mapping[str, str] | None = None,
+) -> AniResult:
     """Bridge one explicit canonical component per vest into the M1 engine."""
     manual = {record.money.event_id: record for record in raw.rsu_events}
     values = tuple(values)
@@ -211,7 +213,8 @@ def calculate_ani_with_vests(raw: AniInputs, values: Iterable[VestValuation]) ->
             if (
                 forecast is None or forecast.source.manual_vest_id is not None
                 or forecast.source.vest.security.identity != source.vest.security.identity
-                or forecast.source.vest.grant_id != source.vest.grant_id
+                or (grant_replacements or {}).get(forecast.source.vest.grant_id, forecast.source.vest.grant_id)
+                != source.vest.grant_id
             ):
                 raise InputError("replaces_forecast_id", "Link a valued forecast vest for the same grant and share identity.")
         if manual_id is None:
