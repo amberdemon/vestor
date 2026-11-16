@@ -156,8 +156,22 @@ class Sale:
     settlement_on: date | None = None
     rate_id: str | None = None
     uk_resident: bool | None = None
+    price_per_share: Decimal | None = None
+    fees_confirmed: bool = False
+    cancelled: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.cancelled) is not bool or type(self.fees_confirmed) is not bool:
+            raise InputError("sale", "Use true or false for cancellation and fee coverage.")
+        if self.cancelled and not (
+            self.source.replaces_forecast_id is not None
+            and all(value is None for value in (
+                self.trade_on, self.quantity, self.gross_amount, self.price_per_share,
+                self.settlement_on, self.rate_id,
+            ))
+        ):
+            raise InputError("cancelled", "Link a cancelled forecast without supplying execution details.")
+        _decimal(self.price_per_share, "price_per_share")
         _date(self.trade_on, "trade_on")
         _date(self.settlement_on, "settlement_on")
         if self.trade_on is not None and self.settlement_on is not None and self.settlement_on < self.trade_on:
@@ -181,8 +195,11 @@ class Fee:
     amount: Decimal | None
     currency: Currency
     rate_id: str | None = None
+    category: Literal["eligible_dealing", "other_broker", "cash_transfer"] | None = None
 
     def __post_init__(self) -> None:
+        if self.category not in ("eligible_dealing", "other_broker", "cash_transfer", None):
+            raise InputError("category", "Choose a broker or transfer fee category, or mark it unknown.")
         _require_text(self.transaction_id, "transaction_id")
         _date(self.on, "on")
         _decimal(self.amount, "amount")
@@ -370,7 +387,19 @@ def validate_share_evidence(records: Iterable[ShareRecord]) -> ShareEvidence:
                 Problem("input_error", "replaces_forecast_id", "Link one compatible forecast per actual replacement."),
             ))
         replacements[forecast_id] = key
-    active = {key: record for key, record in by_id.items() if key not in replacements}
+    cancelled_sales = {record.source.event_id for record in originals
+                       if isinstance(record, Sale) and record.cancelled}
+    cancelled_forecasts = {forecast for forecast, actual in replacements.items() if actual in cancelled_sales}
+    active = {}
+    for key, record in by_id.items():
+        if key in replacements or key in cancelled_sales:
+            continue
+        if record.source.source_status == "forecast" and (
+            (isinstance(record, Fee) and record.transaction_id in cancelled_forecasts)
+            or (isinstance(record, WithholdingLink) and record.sale_id in cancelled_forecasts)
+        ):
+            continue
+        active[key] = record
     events = tuple(active.values())
     warnings = _links(active)
     for forecast_id, actual_id in replacements.items():
@@ -404,7 +433,9 @@ def validate_share_evidence(records: Iterable[ShareRecord]) -> ShareEvidence:
                 warnings.append(Problem("incomplete", key, "Confirm vest, acquisition and charge dates."))
             elif len(set(vest_dates)) != 1:
                 warnings.append(Problem("unsupported", key, "Different vest, acquisition and charge dates are outside this scope."))
-        if isinstance(record, (Sale, Purchase)) and record.gross_amount is None:
+        if (isinstance(record, Purchase) and record.gross_amount is None) or (
+            isinstance(record, Sale) and record.gross_amount is None and record.price_per_share is None
+        ):
             warnings.append(Problem("incomplete", key, "Confirm the gross transaction amount."))
         if isinstance(record, Fee) and (record.amount is None or record.on is None):
             warnings.append(Problem("incomplete", key, "Confirm the fee amount and date."))
