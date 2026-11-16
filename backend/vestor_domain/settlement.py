@@ -275,16 +275,20 @@ def _payroll(
     repaid = sum((Fraction(entry.amount) for entry in valid_payments
                   if entry.kind == "repayment" and entry.amount is not None), Fraction(0))
     owed = None
+    reported_on = None
     if len(reported) == 1 and reported[0].amount is not None:
         owed = Fraction(reported[0].amount)
+        reported_on = reported[0].on
     else:
         warnings.append(Problem("input_error" if reported else "incomplete", key, "Supply one separately reported outstanding balance, including zero."))
     if not coverage:
         warnings.append(Problem("incomplete", key, "Confirm coverage of payroll liabilities and payment entries."))
-    difference = (
-        Fraction(liability.amount) - withheld - repaid - owed
-        if not warnings and liability.amount is not None and owed is not None else None
-    )
+    difference = None
+    if not warnings and liability.amount is not None and owed is not None and reported_on is not None:
+        paid_as_of = sum((Fraction(entry.amount) for entry in valid_payments
+                          if entry.amount is not None and entry.on is not None and entry.on <= reported_on),
+                         Fraction(0))
+        difference = Fraction(liability.amount) - paid_as_of - owed
     if difference:
         warnings.append(Problem("incomplete", key, "Reconcile settled payments and the separately reported balance."))
     status = _status((liability, *children), warnings)

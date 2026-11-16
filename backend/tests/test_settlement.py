@@ -129,3 +129,21 @@ def test_unknown_receipt_and_reported_balance_remain_distinct_from_ani():
     assert result.transfers[0].actual_received_gbp is None and result.cash_status == "incomplete"
     assert calculate_ani(base) == before
     assert before.rsu.taxable_gbp == 1000
+
+
+@pytest.mark.parametrize(("reported", "difference"), [(400, 0), (350, 50)])
+def test_reported_balance_reconciles_only_payments_through_its_date(reported, difference):
+    entries = (
+        PayrollEntry(source("liability"), "vest", TRADE, "GBP", "liability", d(450), "payroll"),
+        PayrollEntry(source("first"), "vest", TRADE, "GBP", "withholding", d(50), "payroll",
+                     liability_id="liability", settled=True, transaction_ref="first-payment"),
+        PayrollEntry(source("reported"), "vest", TRADE, "GBP", "reported_owed", d(reported), "payroll",
+                     liability_id="liability"),
+        PayrollEntry(source("later"), "vest", SETTLEMENT, "GBP", "repayment", d(50), "employer_repayment",
+                     liability_id="liability", settled=True, transaction_ref="later-payment"),
+    )
+    group, = calculate_settlement(cover_ledger(), entries, (), RATES,
+                                  payroll_coverage=True, cash_coverage=False).payroll
+    assert group.withheld == group.repaid == 50
+    assert group.reconciliation_difference == difference
+    assert group.status == ("incomplete" if difference else "confirmed")
