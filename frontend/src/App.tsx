@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   calculate,
+  calculateM2,
   type AniResult,
   type FieldError,
-  type ExactGBP,
+  type M2Result,
 } from "./api";
 import {
   configuration,
@@ -14,50 +15,12 @@ import {
   type Value,
   type RecordValue,
 } from "./inputs";
-const words = (value: string) => value.replaceAll("_", " ");
-const gbp = (amount: ExactGBP | null) =>
-  amount === null
-    ? "Unavailable"
-    : `£${amount.display_gbp.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-function Evidence({ value }: { value: unknown }) {
-  if (value === null || value === undefined)
-    return <span>Unknown / not supplied</span>;
-  if (typeof value !== "object") return <span>{String(value)}</span>;
-  if ("display_gbp" in value)
-    return (
-      <span>
-        {gbp(value as ExactGBP)}{" "}
-        <small>
-          (exact {String((value as ExactGBP).numerator)}/
-          {String((value as ExactGBP).denominator)})
-        </small>
-      </span>
-    );
-  if (Array.isArray(value))
-    return value.length ? (
-      <ol>
-        {value.map((item, i) => (
-          <li key={i}>
-            <Evidence value={item} />
-          </li>
-        ))}
-      </ol>
-    ) : (
-      <span>None</span>
-    );
-  return (
-    <dl className="evidence">
-      {Object.entries(value).map(([key, child]) => (
-        <div key={key}>
-          <dt>{words(key)}</dt>
-          <dd>
-            <Evidence value={child} />
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
+import { Evidence, gbp, words } from "./evidence";
+import {
+  annualFields, bandFields, blankFields, capitalFields, initialLedger,
+  ledgerSections, settlementCoverage,
+} from "./ledgerInputs";
+import { LedgerResults } from "./LedgerResults";
 function Editor({
   fields,
   value,
@@ -184,7 +147,7 @@ function Editor({
               {...props}
               type={field.type === "date" ? "date" : "text"}
               inputMode={
-                field.type === "money" || field.type === "percent"
+                field.type === "money" || field.type === "percent" || field.type === "decimal"
                   ? "decimal"
                   : field.type === "integer"
                     ? "numeric"
@@ -272,13 +235,18 @@ export function validate(
         ? /^\d+(\.\d{1,2})?$/
         : field.type === "percent"
           ? /^\d+(\.\d{1,4})?$/
-          : null;
+          : field.type === "decimal"
+            ? /^\d+(\.\d+)?$/
+            : null;
+    if (field.type === "decimal" && typeof item === "string" && item.replace(".", "").length > 64)
+      return [{ field: key, message: "Use at most 64 digits." }];
     if (pattern && (typeof item !== "string" || !pattern.test(item)))
       return [
         {
           field: key,
           message:
-            "Enter a plain nonnegative decimal: at most two places for GBP or four for percentages.",
+            field.type === "decimal" ? "Enter a plain nonnegative decimal."
+              : "Enter a plain nonnegative decimal with up to two places for GBP or four for percentages.",
         },
       ];
     if (
@@ -303,6 +271,20 @@ export function App() {
     [errors, setErrors] = useState<FieldError[]>([]);
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState("Enter inputs, then calculate.");
+  const [includeLedger, setIncludeLedger] = useState(false);
+  const [ledger, setLedger] = useState<RecordValue>(() => structuredClone(initialLedger));
+  const [m2Result, setM2Result] = useState<M2Result | null>(null);
+  const annual = ledger.annual as RecordValue;
+  const activeAnnualFields = [
+    ...annualFields,
+    ...(annual.capital ? [{ key: "capital", label: "Other gains and losses", fields: capitalFields }] : []),
+    ...(annual.band ? [{ key: "band", label: "Tax band evidence", fields: bandFields }] : []),
+  ];
+  const ledgerFields: Field[] = [
+    ...ledgerSections.map((section) => ({ key: section.key, label: section.title, repeat: true, fields: section.fields })),
+    { key: "annual", label: "Annual CGT inputs", fields: activeAnnualFields },
+    ...settlementCoverage,
+  ];
   const sourceNumber = useRef(0);
   function newRecord(section: (typeof sections)[number]): RecordValue {
     const row = structuredClone(section.initial);
@@ -317,11 +299,32 @@ export function App() {
   }
   const sequence = useRef(0),
     summary = useRef<HTMLDivElement>(null);
-  function edit(next: RecordValue) {
+  useEffect(() => {
+    if (errors.length) summary.current?.focus();
+  }, [errors]);
+  useEffect(() => {
+    if (result) document.getElementById("results-heading")?.focus();
+  }, [result]);
+  function invalidate() {
     sequence.current++;
-    setInputs(next);
     setResult(null);
+    setM2Result(null);
     setMessage("Inputs changed. Calculate to update results.");
+  }
+  function edit(next: RecordValue) {
+    setInputs(next);
+    invalidate();
+  }
+  function editLedger(next: RecordValue) {
+    setLedger(next);
+    invalidate();
+  }
+  function newLedgerRecord(section: (typeof ledgerSections)[number]) {
+    const row = blankFields(section.fields);
+    const record = (row.vest ?? row) as RecordValue;
+    (record.source as RecordValue).event_id = `${section.key.replaceAll("_", "-")}-${++sourceNumber.current}`;
+    if (section.key === "rates") row.pair = "GBP/USD";
+    return row;
   }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -333,30 +336,32 @@ export function App() {
         ),
       ),
     ];
+    if (includeLedger) invalid.push(...validate(ledgerFields, ledger, "inputs"));
     setErrors(invalid);
     setResult(null);
+    setM2Result(null);
     if (invalid.length) {
       setMessage("Check the highlighted fields.");
-      setTimeout(() => summary.current?.focus(), 0);
       return;
     }
     const request = sequence.current;
     setBusy(true);
     setMessage("Calculating locally…");
     try {
-      const response = await calculate(inputs);
+      const response = includeLedger ? await calculateM2({ ...ledger, ani: inputs }) : await calculate(inputs);
       if (request !== sequence.current) return;
       if ("errors" in response) {
-        setErrors(response.errors as FieldError[]);
+        setErrors((response.errors as FieldError[]).map(({ field, message }) => ({
+          field: field.replace(/^inputs\.ani(?=\.|$)/, "inputs"), message,
+        })));
         setMessage("Check the highlighted fields.");
-        setTimeout(() => summary.current?.focus(), 0);
-      } else {
-        setResult(response);
-        setTimeout(
-          () => document.getElementById("results-heading")?.focus(),
-          0,
-        );
-        setMessage(`Calculation ${response.status}.`);
+        } else {
+        const combined = includeLedger ? response as M2Result : null;
+        const ani = combined?.ani ?? response as AniResult;
+        setResult(ani);
+        setM2Result(combined);
+        setMessage(combined ? `Calculation returned. ANI ${ani.status}. CGT ${combined.annual_cgt.status}.`
+          : `Calculation ${ani.status}.`);
       }
     } catch {
       if (request === sequence.current) {
@@ -375,6 +380,7 @@ export function App() {
   }
   const targets = new Set([
     ...inputTargets(configuration, inputs, "inputs"),
+    ...(includeLedger ? inputTargets(ledgerFields, ledger, "inputs") : []),
     ...sections.flatMap((section) => [
       `inputs.${section.key}`,
       ...(inputs[section.key] as RecordValue[]).flatMap((row, index) =>
@@ -391,8 +397,7 @@ export function App() {
       </header>
       <aside className="notice">
         <strong>Not saved — data lost on refresh.</strong> Inputs stay in this
-        page only. No full tax bill, take-home pay, CGT or pension optimisation
-        is calculated.
+        page only. Enable the share ledger below to include RSUs, disposal gains and qualified CGT.
       </aside>
       <form onSubmit={submit} noValidate>
         {errors.length > 0 && (
@@ -506,9 +511,62 @@ export function App() {
             </section>
           );
         })}
+        <section aria-labelledby="ledger-form-heading">
+          <h2 id="ledger-form-heading">Share ledger and Capital Gains Tax</h2>
+          <label className="coverage" htmlFor="include-m2">
+            <input id="include-m2" type="checkbox" checked={includeLedger} onChange={(event) => {
+              setIncludeLedger(event.target.checked);
+              setErrors([]);
+              invalidate();
+            }} />
+            Include share ledger and CGT
+          </label>
+          {includeLedger && <>
+            <p>Use matching share identities and source IDs to link grants, vests, sales, expenses and payroll.</p>
+            {ledgerSections.map((section) => {
+              const rows = ledger[section.key] as RecordValue[];
+              const path = `inputs.${section.key}`;
+              return <details key={section.key} id={path} tabIndex={-1} open={errors.some((error) =>
+                error.field === path || error.field.startsWith(`${path}.`)) || undefined}>
+                <summary>{section.title} ({rows.length})</summary>
+                {rows.map((row, index) => (
+                  <fieldset key={index}>
+                    <legend>{section.title} · entry {index + 1}</legend>
+                    <Editor fields={section.fields} value={row} path={`${path}.${index}`} errors={errors}
+                      change={(next) => editLedger({ ...ledger, [section.key]: rows.map((item, i) => i === index ? next : item) })} />
+                    <button type="button" className="remove" onClick={() =>
+                      editLedger({ ...ledger, [section.key]: rows.filter((_, i) => i !== index) })}>
+                      Remove entry {index + 1} from {section.title}
+                    </button>
+                  </fieldset>
+                ))}
+                <button type="button" onClick={() => editLedger({ ...ledger, [section.key]: [...rows, newLedgerRecord(section)] })}>
+                  {section.add}
+                </button>
+              </details>;
+            })}
+            <details id="inputs.annual" tabIndex={-1} open={errors.some(({ field }) => field.startsWith("inputs.annual")) || undefined}>
+              <summary>Annual CGT evidence</summary>
+              <p>Enter other gains and losses, including explicit zero amounts. For the rate band, enter an externally
+                confirmed unused band or taxable income and the confirmed band extension.</p>
+              {([["capital", "Other gains and losses", capitalFields], ["band", "Tax band evidence", bandFields]] as const)
+                .map(([key, label, fields]) => <label className="coverage" key={key}>
+                  <input type="checkbox" checked={annual[key] !== null} onChange={(event) => {
+                    const record = blankFields(fields);
+                    (record.source as RecordValue).event_id = `annual-${key}`;
+                    editLedger({ ...ledger, annual: { ...annual, [key]: event.target.checked ? record : null } });
+                  }} />
+                  Include {label.toLowerCase()}
+                </label>)}
+              <Editor fields={activeAnnualFields} value={annual} path="inputs.annual" errors={errors}
+                change={(next) => editLedger({ ...ledger, annual: next })} />
+            </details>
+            <Editor fields={settlementCoverage} value={ledger} path="inputs" errors={errors} change={editLedger} />
+          </>}
+        </section>
         <div className="calculate">
           <button className="primary" disabled={busy} type="submit">
-            {busy ? "Calculating…" : "Calculate ANI"}
+            {busy ? "Calculating…" : includeLedger ? "Calculate ANI and shares" : "Calculate ANI"}
           </button>
           <p role="status" aria-live="polite">
             {message}
@@ -625,6 +683,7 @@ export function App() {
           </details>
         </section>
       )}
+      {m2Result && <LedgerResults result={m2Result} />}
       <footer>
         Local-first · Synthetic examples only in tests · Persistence planned for
         M4
