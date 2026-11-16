@@ -54,6 +54,7 @@ class PriorityMatches:
     disposal_remainders: tuple[tuple[str, Fraction], ...]
     warnings: tuple[Problem, ...]
     rule_version: str = RULES_VERSION
+    projected_identities: tuple[tuple[str, str, str, str], ...] = ()
 
 
 @dataclass
@@ -192,4 +193,5 @@ def identify_priority_matches(ledger: DisposalLedger, bases: Mapping[str, Acquis
     return PriorityMatches(
         status, tuple(segments), tuple(acquisition_remainders), tuple(disposal_remainders),
         tuple(sorted(set(warnings), key=lambda item: (item.status, item.field, item.message))),
+        projected_identities=tuple(sorted(projected)),
     )

@@ -73,6 +73,7 @@ def _pool_movements(
     movements = []
     pool: dict[Identity, PoolState] = {}
     estimated: set[Identity] = set()
+    projected = set(priority.projected_identities)
     blocked: set[Identity] = set()
     issues: dict[str, Problem] = {}
     dated: list[tuple[date, int, str, OpeningHolding | Purchase | Vest | Disposal]] = []
@@ -131,7 +132,7 @@ def _pool_movements(
             continue
         if basis is None or after.cost_gbp is None:
             status = "incomplete"
-        elif identity in estimated or priority.status == "estimated":
+        elif identity in estimated or identity in projected:
             status = "estimated"
         pool[identity] = after
         movements.append(PoolMovement(key, security, on, kind, before, after, quantity, basis, status))
@@ -154,6 +155,7 @@ def calculate_share_gains(ledger: DisposalLedger, bases: Mapping[str, Acquisitio
         segments[segment.disposal_id].append(segment)
     residual = dict(priority.disposal_remainders)
     gains = []
+    projected = set(priority.projected_identities)
     for disposal in sorted(ledger.disposals, key=lambda row: (row.sale.trade_on or date.min, row.sale.source.event_id)):
         key = disposal.sale.source.event_id
         trace = tuple(segments[key])
@@ -173,7 +175,7 @@ def calculate_share_gains(ledger: DisposalLedger, bases: Mapping[str, Acquisitio
             warnings.append(Problem("incomplete", key, "Confirm the full matched GBP acquisition basis."))
         status = _with_problems(disposal.status, warnings)
         if status == "confirmed" and (
-            priority.status == "estimated"
+            disposal.sale.security.identity in projected
             or any(row.status == "estimated" for row in trace)
             or (debit is not None and debit.status == "estimated")
         ):

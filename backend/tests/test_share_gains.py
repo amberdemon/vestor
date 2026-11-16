@@ -104,3 +104,15 @@ def test_unknown_and_impossible_opening_pool_blocks_qualified_gain(opening, stat
     assert result.status == status and result.warnings
     assert result.gains[0].gain_gbp is None
     assert not result.pool_movements
+
+
+def test_missing_unrelated_basis_does_not_hide_forecast_allocation_dependency():
+    nov, dec = date(2026, 11, 20), date(2026, 12, 15)
+    prior = sell("prior", nov, 10)
+    lot = buy("lot", dec, 10, 100)
+    forecast = replace(sell("forecast", dec, 10), source=source("forecast", "forecast"))
+    missing = buy("missing", date(2027, 2, 1), 1, 10)
+    result = calculate((OPEN, prior, lot, forecast, missing), {"lot": 100})
+    assert result.status == "incomplete"
+    assert result.gains[0].gain_gbp == 50
+    assert result.gains[0].status == "estimated"
