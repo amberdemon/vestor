@@ -194,7 +194,7 @@ The [M1 release verification report](M1_RELEASE_VERIFICATION.md) maps acceptance
 
 ## 9. Implementation decisions
 
-The [M2 financial contract](M2_RSU_FX_CGT.md) defines planned RSU valuation, GBP conversion, share matching, qualified CGT and settlement evidence. Its worked cases expand F4–F6 for M2 implementation.
+The [M2 financial contract](M2_RSU_FX_CGT.md) defines supported RSU valuation, GBP conversion, share matching, qualified CGT and settlement evidence. Its worked cases expand F4–F6 for M2 implementation.
 
 The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) records the financial decisions. The [M1.2 architecture decision](M1_APP_ARCHITECTURE.md) records the shipped local shell, health endpoint and test pipeline. The [M1.3 domain primitives](M1_COMPENSATION_ANI.md#implemented-m13-primitives) implement inclusive year membership, scope selection and dated GBP event evidence. Date-specific FX and cash availability rules belong to M2 and M3 respectively.
 
@@ -292,3 +292,7 @@ Invalid input responses use field paths with no submitted values or source notes
 Enable **Include share ledger and CGT** to enter linked share records and local FX evidence alongside ordinary ANI inputs. Sharing the issuer, class, owner and capacity identifies the holding. Source IDs link grant, vest, cover sale, fee, remittance and payroll evidence. Use the existing ANI component controls for named payroll inclusion, or explicitly link or replace a manual vest to reconcile it with an M2 vest.
 
 The results show gross RSU income, per-disposal GBP proceeds and basis, priority and Section 104 trace, exact rates, annual CGT evidence, and payroll and broker settlement details. Incomplete annual CGT can coexist with an inspectable disposal gain. The interface uses the API’s displayed GBP values, preserves entered decimals as text and clears stale results after edits. Entries are unsaved and refresh discards them. The local endpoint provides all calculations.
+
+## M2 release evidence
+
+The [M2 verification report](M2_RELEASE_VERIFICATION.md) records the independent synthetic calculations, clean-checkout tests, disconnected runtime evidence and supported limitations.
