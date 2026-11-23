@@ -10,7 +10,7 @@ Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independen
 
 ## 1. Goal and calculation contract
 
-M1 answers question 1. Questions 2–4 describe planned M2/M3 capabilities and are not release outputs:
+M1 answers question 1. M2 adds the supported RSU valuation, gain and evidenced settlement parts of question 3. Pension planning and spendable-cash projections in questions 2–4 remain M3 scope.
 1. **Adjusted net income (ANI):** What is the projected ANI for a UK tax year and the shortfall/excess relative to a configured target?
 2. **Pension planning:** What gross additional qualifying pension contribution or valid salary sacrifice would reduce ANI to the requested target, subject to the scheme constraints and available compensation?
 3. **RSU proceeds:** What was taxable when shares vested, what is potentially taxable when shares are sold, what cash is actually receivable, and what remains owed?
@@ -190,7 +190,7 @@ Every behaviour-changing issue:
 
 A milestone must finish with an integration/verification issue, manual scenarios and a signed-off limitations list.
 
-The [M1 release verification report](M1_RELEASE_VERIFICATION.md) maps acceptance to tests, independent arithmetic, release checks and explicit unsupported cases. M2-only F4–F6 remain future regression fixtures.
+The [M1 release verification report](M1_RELEASE_VERIFICATION.md) maps acceptance to tests, independent arithmetic, release checks and explicit unsupported cases. The [M2 release verification report](M2_RELEASE_VERIFICATION.md) records the completed F4–F6 checks and the remaining supported-case boundaries.
 
 ## 9. Implementation decisions
 

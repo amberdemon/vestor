@@ -17,7 +17,7 @@ The complete product vision is to model compensation across a UK tax year, chang
 
 This is a planning tool, **not** a payroll engine, tax filing service, personal investment adviser or successor to Payday. Payday answers cash-flow questions; Vestor answers compensation, tax and pension-scenario questions.
 
-**Implemented M1 scope:** a transient local calculator for supported 2026/27 England/Northern Ireland ANI, standard Personal Allowance and signed target headroom. Share prices, FX, disposals, spendable cash and pension recommendations remain future scope. [M1 release evidence and limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23).
+**Implemented M1 scope:** a transient local calculator for supported 2026/27 England/Northern Ireland ANI, standard Personal Allowance and signed target headroom. M2 adds manually supplied share prices, FX and disposal calculations to this foundation. Spendable-cash planning and pension recommendations remain future scope. [M1 release evidence and limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23).
 
 Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). See the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
 
