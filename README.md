@@ -1,17 +1,14 @@
 # Vestor
 
-**Understand your adjusted net income and Personal Allowance.**
+**Plan adjusted net income and trace RSU share gains.**
 
-Vestor is a local-first UK adjusted net income (ANI) planner for salary, bonuses, manual GBP RSU vest income, taxable benefits, pension contributions, Gift Aid and supported other income. It keeps actual and forecast evidence separate and explains the £100,000 Personal Allowance taper and headroom to your chosen ANI target.
-
-> **Status:** M1 calculator and deterministic ANI engine implemented. [Release verification and supported limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and the release acceptance process in [#12](https://github.com/amberdemon/vestor/issues/12). Estimates are planning aids, not tax advice. No full tax bill, take-home cash, USD/FX, share disposals/CGT, pension optimiser or durable storage is provided.
+Vestor is a local-first UK compensation planner with an optional RSU and share ledger. The 2026/27 calculator explains adjusted net income (ANI), the Personal Allowance taper, GBP acquisition and sale values, matched share gains, qualified Capital Gains Tax (CGT), and separate payroll withholding and cash receipts.
 
 - [Project overview and roadmap](PROJECT.md)
 - [Product and financial rules specification](docs/SPEC.md)
-- [M1 milestone specification](docs/M1_COMPENSATION_ANI.md) and [M1 implementation tracker](https://github.com/amberdemon/vestor/issues/1)
+- [M2 financial contract](docs/M2_RSU_FX_CGT.md) and [M2 release verification](docs/M2_RELEASE_VERIFICATION.md)
+- [M1 release verification](docs/M1_RELEASE_VERIFICATION.md)
 - [Instructions for coding agents](AGENTS.md)
-
-Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). See the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
 
 ## Run locally
 
@@ -29,7 +26,7 @@ After the image is built, start it without building or pulling, including when t
 docker compose up --no-build --pull never
 ```
 
-Run `docker compose down` to stop the app. The calculator accepts M1 financial inputs in memory only. **Not saved — data lost on refresh.**
+Run `docker compose down` to stop the app. The calculator keeps financial inputs in page memory. **Not saved — data lost on refresh.**
 
 ## Run all tests and type checks
 
@@ -68,7 +65,7 @@ Read the [M1.2 architecture decision](docs/M1_APP_ARCHITECTURE.md) for the packa
 
 M1 — Implemented compensation inputs, pension methods, ANI, standard Personal Allowance and target headroom; acceptance tracked in [#12](https://github.com/amberdemon/vestor/issues/12).
 
-M2 — Planned RSU ledger, share disposals, GBP FX and CGT matching.
+M2 — Implemented RSU ledger, dated USD-to-GBP evidence, UK share matching, qualified 2026/27 CGT and separate settlement evidence. See [release verification and limitations](docs/M2_RELEASE_VERIFICATION.md).
 
 M3 — Planned scenario comparisons, pension optimisation and cash projections.
 
@@ -93,3 +90,13 @@ Net-pay forecasts require dated earnings and deductions; a deduction and its lin
 `POST /api/calculate` accepts the immutable `AniInputs` shape: money/percentages are exact decimal strings or explicit null, dates are ISO date-only strings, confirmations are strict booleans or null where permitted. Unknown keys and coercions are rejected with field errors without echoing rejected input. It calls the existing `calculate_ani` once and returns its exact wire result. No financial calculations run in React.
 
 Browser CI uses Node 24.18.0 on Debian Bookworm and the package-pinned Playwright 1.56.1 Chromium build. The `npm exec --` separator passes `--with-deps` to Playwright, so its required Linux libraries are installed before launching the pinned browser. Calculation errors map to labelled form controls or sections; unassigned errors remain accessible general text without dead links or rejected source identities.
+
+## Using the share ledger
+
+Enable **Include share ledger and CGT** in the calculator. Give each holding a consistent issuer, share class, owner and capacity. Enter a reconciled opening snapshot or an explicitly evidenced zero opening holding. Confirm coverage through 30 calendar days after the last disposal, even where the coverage crosses 5 April.
+
+Add dated grants and vests, manual FX rates by purpose, sale and cover trades, and allowable dealing expenses. Use the source IDs to link the records. Confirm gross taxable payroll GBP where available. Confirm separately evidenced acquisition cost and name any existing ANI payroll or manual vest entry that represents the same income.
+
+Use **Calculate ANI and shares** to inspect exact disposal matches, Section 104 movements and the annual estimate. The latter requires known other gains and losses, allowance eligibility and external band evidence. Payroll remittances, repayments, wire fees and observed receipts appear in the settlement section. Unsupported awards, incomplete holding history and unresolved annual evidence are flagged. See the [supported release boundaries](docs/M2_RELEASE_VERIFICATION.md#supported-cases-and-limitations).
+
+The optional ledger sends the combined request to `POST /api/v2/calculate`. The original `POST /api/calculate` accepts the standalone ANI request.

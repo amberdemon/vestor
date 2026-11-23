@@ -2,7 +2,7 @@
 
 [M2 tracker #24](https://github.com/amberdemon/vestor/issues/24) · [Contract issue #25](https://github.com/amberdemon/vestor/issues/25) · [M1 financial contract](M1_FINANCIAL_CONTRACT.md) · [M1 release evidence](M1_RELEASE_VERIFICATION.md)
 
-This contract defines planned M2 behaviour. The annual rules version is `uk-eng-ni-cgt-2026-27-v1`, effective 6 April 2026 through 5 April 2027 inclusive. The existing M1 ANI rules keep their own version. Primary sources were checked on 14 November 2026.
+This contract defines the supported M2 calculation behaviour. The [M2 release verification report](M2_RELEASE_VERIFICATION.md) contains observed results, limitations and linked implementation PRs. The annual rules version is `uk-eng-ni-cgt-2026-27-v1`, effective 6 April 2026 through 5 April 2027 inclusive. The existing M1 ANI rules keep their own version. Primary sources were checked on 14 November 2026.
 
 ## Supported awards, dates and evidence
 

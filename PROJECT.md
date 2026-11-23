@@ -17,7 +17,7 @@ The complete product vision is to model compensation across a UK tax year, chang
 
 This is a planning tool, **not** a payroll engine, tax filing service, personal investment adviser or successor to Payday. Payday answers cash-flow questions; Vestor answers compensation, tax and pension-scenario questions.
 
-**Implemented M1 scope:** a transient local calculator for supported 2026/27 England/Northern Ireland ANI, standard Personal Allowance and signed target headroom. Share prices, FX, disposals, spendable cash and pension recommendations remain future scope. [M1 release evidence and limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23).
+**Implemented M1 scope:** a transient local calculator for supported 2026/27 England/Northern Ireland ANI, standard Personal Allowance and signed target headroom. M2 adds manually supplied share prices, FX and disposal calculations to this foundation. Spendable-cash planning and pension recommendations remain future scope. [M1 release evidence and limitations](docs/M1_RELEASE_VERIFICATION.md) record supported scope and acceptance through [release PR #23](https://github.com/amberdemon/vestor/pull/23).
 
 Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independent financial scenarios passed on 9 November 2026. Acceptance is established by the reviewed, passing merge of [release PR #23](https://github.com/amberdemon/vestor/pull/23); the final commit and CI verdict are recorded in [#12](https://github.com/amberdemon/vestor/issues/12). See the [release evidence](docs/M1_RELEASE_VERIFICATION.md).
 
@@ -60,9 +60,9 @@ Clean-checkout Docker checks, desktop/mobile browser scenarios and 34 independen
 
 ### M2 — RSU, FX and CGT
 
-The [M2 financial contract](docs/M2_RSU_FX_CGT.md) defines the planned scope, verified sources and worked examples.
+The [M2 financial contract](docs/M2_RSU_FX_CGT.md) defines the supported scope, verified sources and worked examples.
 
-Implemented domain foundations include immutable share evidence, exact per-event manual USD-to-GBP conversion, a vest valuation bridge into M1 ANI, a disposal ledger for trade proceeds and fees, full supported share identification with Section 104 and per-disposal GBP gains, a qualified annual CGT calculation, and payroll and broker settlement evidence. The optional share ledger in the local calculator uses the versioned API to show those results alongside ANI. M2 release verification is tracked separately.
+Implemented domain foundations include immutable share evidence, exact per-event manual USD-to-GBP conversion, a vest valuation bridge into M1 ANI, a disposal ledger for trade proceeds and fees, full supported share identification with Section 104 and per-disposal GBP gains, a qualified annual CGT calculation, and payroll and broker settlement evidence. The optional share ledger in the local calculator uses the versioned API to show those results alongside ANI. The [M2 release evidence](docs/M2_RELEASE_VERIFICATION.md) records the tested scope and acceptance gates.
 - Actual and forecast vest schedules, number of shares and vest FMV, original payroll taxable GBP amount.
 - Employee share events: vest/acquisition, same-day sell-to-cover disposal and voluntary share sales.
 - USD/GBP conversion by event date; separate vest-income, acquisition cost, disposal proceeds and fee basis.
@@ -125,12 +125,9 @@ A milestone is complete only when:
 4. `PROJECT.md`, `docs/SPEC.md` and relevant documentation reflect shipped behaviour;
 5. an integration/verification issue documents supported and unsupported cases.
 
-## 9. Immediate next steps
+## 9. Implementation and release evidence
 
-1. Review the [M1.1 financial contract](docs/M1_FINANCIAL_CONTRACT.md) and synthetic fixtures.
-2. Use the [M1.2 scaffold](docs/M1_APP_ARCHITECTURE.md) for local development and checks.
-3. Follow the [M1 tracker](https://github.com/amberdemon/vestor/issues/1) in dependency order, with PR review and tests for each implementation issue.
-4. Do not expand to M2 calculations until M1 has verified results.
+The [M1 verification report](docs/M1_RELEASE_VERIFICATION.md) and [M2 verification report](docs/M2_RELEASE_VERIFICATION.md) record the shipped behavior, linked issues and tests. Use the [local development commands](README.md#run-all-tests-and-type-checks) for changes.
 
 **Implemented foundations.** The M1.2 scaffold provides local startup and health checks. M1.3 adds versioned 2026/27 rules, inclusive UK tax-year dates and dated GBP evidence in the Python domain. M1.4 adds effective-dated salary and dated bonus calculations in the Python domain, with payroll provenance and an explicit pension reduction basis. M1.5 adds payroll pension reductions, separate personal pension and Gift Aid deductions, and ordinary employer contribution evidence in the Python domain. M1.6 adds taxable benefit periods, forecast renewals and payroll reconciliation in the Python domain. M1.7 adds manual gross GBP RSU vest income, explicit actual replacement and payroll reconciliation in the Python domain. M1.8 adds supported other-income evidence, assessment-year profit totals and explicit exemptions in the Python domain. M1.9 adds the combined pure ANI waterfall, statutory Personal Allowance and signed target headroom with source evidence and exact arithmetic. M1.10 adds the transient local calculator UI and strict API bridge; M1.11 release evidence and acceptance are recorded in [the verification report](docs/M1_RELEASE_VERIFICATION.md).
 

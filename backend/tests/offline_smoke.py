@@ -55,6 +55,50 @@ try:
     assert result["personal_allowance_gbp"]["display_gbp"] == "12570.00"
     assert result["headroom_gbp"]["display_gbp"] == "21600.00"
     print("PASS disconnected runtime health, HTML, all bundled JS/CSS assets, and synthetic F1 API calculation.")
+
+    security = {
+        "issuer_id": "fictional-issuer", "share_class": "ordinary-A",
+        "owner_id": "fictional-owner", "capacity": "personal", "ordinary_listed": True,
+    }
+
+    def source(key):
+        return {"event_id": key, "source_status": "actual", "source_note": "Synthetic offline F4 fixture"}
+
+    ledger = {
+        "ani": payload,
+        "grants": [{"source": source("grant"), "security": security,
+                    "awarded_on": "2025-05-01", "treatment": "ordinary_rsu"}],
+        "vests": [{
+            "vest": {"source": source("vest"), "security": security, "grant_id": "grant",
+                     "vested_on": "2026-05-10", "acquired_on": "2026-05-10", "charge_on": "2026-05-10",
+                     "quantity": "100", "fmv_usd_per_share": "10", "uk_resident": True},
+            "included_in_payroll": False, "basis_method": "market_value",
+            "confirmed_payroll_gbp": "800", "confirmed_basis_gbp": "800",
+        }],
+        "opening_holdings": [{"source": source("opening"), "security": security, "as_of": "2026-04-05",
+                              "quantity": "0", "cost_gbp": "0", "history_confirmed": True,
+                              "coverage_through": "2026-07-20"}],
+        "sales": [{"source": source("sale"), "security": security, "trade_on": "2026-06-20",
+                   "quantity": "100", "gross_amount": "1200", "currency": "USD",
+                   "purpose": "voluntary", "price_per_share": "12", "rate_id": "sale-rate",
+                   "uk_resident": True, "fees_confirmed": True}],
+        "fees": [{"source": source("fee"), "transaction_id": "sale", "on": "2026-06-20",
+                  "amount": "10", "currency": "GBP", "category": "eligible_dealing"}],
+        "rates": [{"source": source("sale-rate"), "on": "2026-06-20", "purpose": "disposal_proceeds",
+                   "gbp_per_usd": "0.75", "pair": "GBP/USD"}],
+    }
+    request = urllib.request.Request(
+        base + "/api/v2/calculate", data=json.dumps(ledger).encode(),
+        headers={"Content-Type": "application/json"}, method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=3) as response:
+        result = json.load(response)
+    assert result["ani"]["ani_gbp"]["display_gbp"] == "79200.00"
+    disposal, = result["share_gains"]["gains"]
+    assert disposal["gain_gbp"] == {"numerator": "90", "denominator": "1", "display_gbp": "90.00"}
+    assert disposal["matched_basis_gbp"]["display_gbp"] == "800.00"
+    assert result["annual_cgt"]["estimate"] is None
+    print("PASS disconnected M2 F4 calculation, ANI integration, exact gain and incomplete annual CGT.")
 finally:
     server.terminate()
     server.wait(timeout=5)
