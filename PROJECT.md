@@ -72,6 +72,9 @@ Implemented domain foundations include immutable share evidence, exact per-event
 - M2 **does not** import broker files automatically or handle every kind of employee equity arrangement.
 
 ### M3 — Scenarios and pension optimisation
+
+The [M3 financial contract](docs/M3_SCENARIOS_PENSIONS_CASH.md), governed by [tracker #49](https://github.com/amberdemon/vestor/issues/49), defines planned 2026/27 tax/NI, scenario, pension-feasibility and cash rules and independent fixtures. It is an implementation contract, not a claim that M3 features have shipped.
+
 - Variable vest/sale share prices and FX assumptions, bonus variations, pension rates and target ANI.
 - Scenario comparison with effective income tax/NI and marginal benefit where implemented and supported.
 - Minimum additional gross contribution needed to meet ANI target, with configurable buffer.

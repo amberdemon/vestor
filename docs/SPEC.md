@@ -112,6 +112,9 @@ The [M1.1 financial contract](M1_FINANCIAL_CONTRACT.md) defines the supported 20
 
 ## 5. Scenarios and pension optimiser — M3
 
+The normative [M3 financial contract](M3_SCENARIOS_PENSIONS_CASH.md) specifies planned supported annual income-tax and period NI rules, immutable overrides, pension feasibility, exact optimisation, cash settlement accounting and independent worked examples. [Tracker #49](https://github.com/amberdemon/vestor/issues/49) governs implementation; these remain planned capabilities until the corresponding issues and release verification are accepted.
+
+
 Inputs: projected share/FX prices per event, sale timing, bonuses, benefits, savings interest, pension amounts/percentages, target ANI and buffer. Optimiser should:
 - calculate gross qualifying reduction required (not presume bonus sacrifice is always available);
 - split eligible March bonus sacrifice versus monthly sacrifice versus relief-at-source personal contributions;
